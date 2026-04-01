@@ -293,11 +293,31 @@ textarea{resize:vertical;min-height:80px}
 @media(max-width:640px){#visitas-tabs-container{flex-direction:column;}#visitas-tabs-container .visita-tab-btn{min-width:100%!important;}#semana-dias-grid{grid-template-columns:1fr!important;}}
 </style>
 <!-- ██ BLOQUE:STYLE-FIN ██ -->
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyCujMWXSzg1A0DSK3OABch0gkWKkAHLS3U",
+    authDomain: "cmr-franez.firebaseapp.com",
+    databaseURL: "https://cmr-franez-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cmr-franez",
+    storageBucket: "cmr-franez.firebasestorage.app",
+    messagingSenderId: "1083773900994",
+    appId: "1:1083773900994:web:a51fbffc904da8d9a2435b"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  window._fbDb = db;
+  window._fbRef = ref;
+  window._fbSet = set;
+  window._fbGet = get;
+</script>
 </head>
 <body>
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <nav id="nav">
-  <span id="nav-title">&#9889; Franez v2.5.1</span>
+  <span id="nav-title">&#9889; Franez v2.6.0</span>
   <button class="nav-btn active" onclick="showPanel('pedidos',this)">Pedidos</button>
   <button class="nav-btn ai-btn" onclick="showPanel('ia',this)">&#10024; Pedido IA</button>
   <button class="nav-btn" onclick="showPanel('visitas',this)">&#128205; Visitas</button>
@@ -959,6 +979,7 @@ textarea{resize:vertical;min-height:80px}
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('stock')">Stock</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('historial')">Historial</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('pedidos')">Pedidos activos</button>
+          <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="subirDatosFirebase()">☁️ SUBIR DATOS A LA NUBE</button>
           <button class="btn" style="background:#450a0a;color:#fca5a5;border:1px solid var(--red)" onclick="borrarTodo()">BORRAR TODO</button>
         </div>
       </div>
@@ -1022,11 +1043,12 @@ textarea{resize:vertical;min-height:80px}
   <div class="card" style="max-width:700px;margin:0 auto">
     <div class="about-hero">
       <div class="about-title">Franez Pedidos</div>
-      <div class="about-version">v2.5.1</div>
+      <div class="about-version">v2.6.0</div>
       <div class="about-desc">Gestor de pedidos comerciales profesional para delegados de ventas</div>
       <div class="about-author">Desarrollado por <strong>Francisco N&uacute;&ntilde;ez Vegas</strong> &bull; 2025</div>
     </div>
     <div class="card-title">Historial de versiones</div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.0</span><span class="changelog-desc">Sincronización en la nube con Firebase Realtime Database. Merge inteligente por ID al arrancar: coge el más reciente sin machacar datos. Botón ☁️ en Ajustes para subida manual inicial. Funciona offline (localStorage) y sincroniza al abrir la app.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.5.1</span><span class="changelog-desc">Contratos caducados visibles en Agenda 14 días durante 30 días tras vencer (badge ⚠️ CADUCADO). Combobox de búsqueda en "Añadir a la ruta" (igual que en pedidos). Campañas en Briefing de cliente muestran badge "✓ Le compensa" si al cliente le sale rentable. Nota próximo pedido visible en Briefing si existe.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.5.0</span><span class="changelog-desc">Agenda 14 días en el panel Visitas (pestaña Briefing): muestra entregas fraccionadas pendientes, contratos próximos a vencer y campañas que terminan en los próximos 14 días. Las entregas se ocultan automáticamente 10 días después de su fecha. Las campañas muestran candidatos (clientes a quienes compensa la oferta) desplegables.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.4.3</span><span class="changelog-desc">Entregas fraccionadas con fechas: botón 📅 por línea para asignar fecha de 1er y 2º envío. El 2º se propone automáticamente 3 meses después, editable. Fechas visibles en panel y en documento imprimible (sección Entregas Fraccionadas).</span></div>
@@ -1171,7 +1193,25 @@ function toast(msg,type){
 // ██ BLOQUE:TOAST-FIN ██
 
 // ██ BLOQUE:LOCAL-STORAGE-INICIO ██
+function mergeById(local, remote) {
+  if (!Array.isArray(remote)) return local;
+  if (!Array.isArray(local)) return remote;
+  var merged = local.slice();
+  remote.forEach(function(rItem) {
+    if (!rItem || !rItem.id) return;
+    var idx = merged.findIndex(function(l) { return l.id === rItem.id; });
+    if (idx === -1) {
+      merged.push(rItem);
+    } else {
+      var lTs = merged[idx]._ts || 0;
+      var rTs = rItem._ts || 0;
+      if (rTs > lTs) merged[idx] = rItem;
+    }
+  });
+  return merged;
+}
 function saveState(){
+  var now = Date.now();
   localStorage.setItem('clientes',JSON.stringify(state.clientes));
   localStorage.setItem('productos',JSON.stringify(state.productos));
   localStorage.setItem('ofertas',JSON.stringify(state.ofertas));
@@ -1182,10 +1222,70 @@ function saveState(){
   localStorage.setItem('campanas',JSON.stringify(state.campanas));
   localStorage.setItem('config',JSON.stringify(state.config));
   localStorage.setItem('acumuladoMensual',JSON.stringify(state.acumuladoMensual||{}));
+  localStorage.setItem('franez_ts', now);
+  // Subir a Firebase si está disponible
+  if (window._fbDb && window._fbSet && window._fbRef) {
+    try {
+      var payload = {
+        clientes: state.clientes,
+        productos: state.productos,
+        ofertas: state.ofertas,
+        historial: state.historial,
+        stock: state.stock,
+        delegado: state.delegado||'',
+        campanas: state.campanas,
+        config: state.config,
+        acumuladoMensual: state.acumuladoMensual||{},
+        _ts: now
+      };
+      window._fbSet(window._fbRef(window._fbDb, 'franez'), payload);
+    } catch(e) { console.warn('Firebase saveState error:', e); }
+  }
 }
-function savePedidos(){localStorage.setItem('pedidos',JSON.stringify(state.pedidos));}
+function savePedidos(){
+  localStorage.setItem('pedidos',JSON.stringify(state.pedidos));
+  if (window._fbDb && window._fbSet && window._fbRef) {
+    try { window._fbSet(window._fbRef(window._fbDb, 'franez/pedidos'), state.pedidos); } catch(e){}
+  }
+}
 function loadState(){
   function tryParse(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
+  // Intentar merge con Firebase al arrancar
+  if (window._fbDb && window._fbGet && window._fbRef) {
+    window._fbGet(window._fbRef(window._fbDb, 'franez')).then(function(snapshot) {
+      if (!snapshot.exists()) return;
+      var remote = snapshot.val();
+      var localTs = parseInt(localStorage.getItem('franez_ts')||'0');
+      var remoteTs = remote._ts || 0;
+      if (remoteTs <= localTs) return; // local es más reciente, no hacer nada
+      // Remote es más reciente: merge por ID en colecciones, replace en el resto
+      if (remote.clientes) state.clientes = mergeById(state.clientes, remote.clientes);
+      if (remote.productos) state.productos = mergeById(state.productos, remote.productos);
+      if (remote.ofertas) state.ofertas = mergeById(state.ofertas, remote.ofertas);
+      if (remote.historial) state.historial = mergeById(state.historial, remote.historial);
+      if (remote.campanas) state.campanas = mergeById(state.campanas, remote.campanas);
+      if (remote.stock) state.stock = Object.assign({}, state.stock, remote.stock);
+      if (remote.delegado) state.delegado = remote.delegado;
+      if (remote.config) state.config = Object.assign({}, state.config, remote.config);
+      if (remote.acumuladoMensual) state.acumuladoMensual = Object.assign({}, state.acumuladoMensual, remote.acumuladoMensual);
+      localStorage.setItem('franez_ts', remoteTs);
+      // Guardar merged en localStorage
+      localStorage.setItem('clientes',JSON.stringify(state.clientes));
+      localStorage.setItem('productos',JSON.stringify(state.productos));
+      localStorage.setItem('ofertas',JSON.stringify(state.ofertas));
+      localStorage.setItem('historial',JSON.stringify(state.historial));
+      localStorage.setItem('campanas',JSON.stringify(state.campanas));
+      localStorage.setItem('stock',JSON.stringify(state.stock));
+      localStorage.setItem('delegado',state.delegado||'');
+      localStorage.setItem('config',JSON.stringify(state.config));
+      localStorage.setItem('acumuladoMensual',JSON.stringify(state.acumuladoMensual));
+      // Refrescar UI con datos mergeados
+      renderClientesList && renderClientesList();
+      renderHistorial && renderHistorial();
+      renderStats && renderStats();
+      toast('✓ Sincronizado con la nube');
+    }).catch(function(e){ console.warn('Firebase loadState error:', e); });
+  }
   state.clientes=tryParse('clientes',[]);
   state.productos=tryParse('productos',[]);
   state.ofertas=tryParse('ofertas',[]);
@@ -2726,6 +2826,29 @@ function borrarTipo(tipo){
   if(!confirm('\u00bfEliminar todos los datos de '+tipo+'?')) return;
   if(tipo==='clientes') state.clientes=[];else if(tipo==='productos') state.productos=[];else if(tipo==='ofertas'){state.ofertas=[];refreshOfertaSelect();}else if(tipo==='stock'){state.stock={};updateStockBadge();}else if(tipo==='historial') state.historial=[];else if(tipo==='pedidos'){state.pedidos=[{clienteId:'',ofertaId:'',lineas:[],portes:'auto',dtoActual:0,notas:''},{clienteId:'',ofertaId:'',lineas:[],portes:'auto',dtoActual:0,notas:''},{clienteId:'',ofertaId:'',lineas:[],portes:'auto',dtoActual:0,notas:''}];renderCurrentOrder();}
   saveState();renderStats();toast(tipo+' eliminados');
+}
+function subirDatosFirebase(){
+  if (!window._fbDb || !window._fbSet || !window._fbRef) {
+    toast('⚠️ Firebase no disponible aún, espera unos segundos y vuelve a intentarlo');
+    return;
+  }
+  if (!confirm('¿Subir todos tus datos locales a la nube? Esto sobrescribirá lo que haya en Firebase.')) return;
+  var now = Date.now();
+  var payload = {
+    clientes: state.clientes,
+    productos: state.productos,
+    ofertas: state.ofertas,
+    historial: state.historial,
+    stock: state.stock,
+    delegado: state.delegado||'',
+    campanas: state.campanas,
+    config: state.config,
+    acumuladoMensual: state.acumuladoMensual||{},
+    _ts: now
+  };
+  window._fbSet(window._fbRef(window._fbDb, 'franez'), payload)
+    .then(function(){ localStorage.setItem('franez_ts', now); toast('☁️ Datos subidos a la nube ✓'); })
+    .catch(function(e){ toast('⚠️ Error al subir: ' + e.message); });
 }
 function borrarTodo(){if(!confirm('Esta accion es IRREVERSIBLE. \u00bfEliminar TODOS los datos?')) return;localStorage.clear();loadState();saveState();refreshOfertaSelect();renderCurrentOrder();renderStats();updateStockBadge();toast('Todos los datos eliminados');}
 
