@@ -1280,7 +1280,105 @@ function importProductosCSV(e){
 }
 
 // ██ BLOQUE:PRODUCTOS-FIN ██
-
+// ██ BLOQUE:CATALOGO-INICIO ██
+function abrirModalCatalogo(){
+  mostrarMiniModal(
+    '<div style="padding:16px">'+
+    '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">📋 Catálogo de precios recomendados</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:14px">Genera un listado con los precios recomendados aplicando el descuento que elijas.</div>'+
+    '<label style="font-size:12px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px">Descuento a aplicar (%)</label>'+
+    '<input type="number" id="mm-cat-dto" min="0" max="99" value="30" style="width:100%;min-height:44px;margin-bottom:16px;background:var(--slate2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:15px">'+
+    '<div style="display:flex;flex-direction:column;gap:8px">'+
+    '<button class="btn btn-primary" onclick="exportarCatalogoExcel()">📊 Descargar Excel</button>'+
+    '<button class="btn btn-ghost" onclick="exportarCatalogoPDF()">📄 Descargar PDF</button>'+
+    '<button class="btn btn-ghost btn-sm" onclick="cerrarMiniModal()" style="color:var(--text3)">Cancelar</button>'+
+    '</div></div>'
+  );
+}
+function exportarCatalogoExcel(){
+  var dto=parseFloat(document.getElementById('mm-cat-dto').value)||0;
+  var prods=sortProductos(state.productos);
+  if(!prods.length){toast('Sin productos','err');return;}
+  var sep='\t';
+  var cabecera=['Producto','PVP (IVA incl.)','Precio recomendado ('+dto+'% dto)','Uds. envase','Familia'].join(sep);
+  var filas=prods.map(function(p){
+    var pvpSinIva=p.pvp/1.10;
+    var neto=pvpSinIva*(1-dto/100);
+    return [p.nombre||'',fmNum(p.pvp),fmNum(neto),p.unidades||1,p.orden||''].join(sep);
+  });
+  var contenido=[cabecera].concat(filas).join('\n');
+  var blob=new Blob(['\uFEFF'+contenido],{type:'application/vnd.ms-excel;charset=utf-8'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Catalogo_precios_'+todayStr().replace(/\//g,'-')+'.xls';
+  a.click();
+  cerrarMiniModal();
+  toast('Excel generado ✓');
+}
+function exportarCatalogoPDF(){
+  var dto=parseFloat(document.getElementById('mm-cat-dto').value)||0;
+  var prods=sortProductos(state.productos);
+  if(!prods.length){toast('Sin productos','err');return;}
+  var cs=[],offsets=[],pdfParts=[];
+  function e(s){return s?String(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)').replace(/[\x00-\x08\x0b\x0e-\x1f]/g,'').substring(0,200):'';}
+  function latinEncode(s){return String(s||'').replace(/\u00e1/g,'\xe1').replace(/\u00e9/g,'\xe9').replace(/\u00ed/g,'\xed').replace(/\u00f3/g,'\xf3').replace(/\u00fa/g,'\xfa').replace(/\u00c1/g,'\xc1').replace(/\u00c9/g,'\xc9').replace(/\u00cd/g,'\xcd').replace(/\u00d3/g,'\xd3').replace(/\u00da/g,'\xda').replace(/\u00f1/g,'\xf1').replace(/\u00d1/g,'\xd1').replace(/\u00fc/g,'\xfc').replace(/\u00dc/g,'\xdc').replace(/[^\x00-\xff]/g,'?');}
+  function pe(s){return e(latinEncode(s||''));}
+  var ml=40,mr=555,y=800,lh=16;
+  function text(x,yy,str,size,bold){cs.push('BT /'+(bold?'F2':'F1')+' '+size+' Tf '+x+' '+yy+' Td ('+pe(str)+') Tj ET');}
+  function fillRect(x,yy,w,h,r,g,b){cs.push(r+' '+g+' '+b+' rg '+x+' '+yy+' '+w+' '+h+' re f 0 0 0 rg');}
+  function line(x1,y1,x2,y2){cs.push(x1+' '+y1+' m '+x2+' '+y2+' l S');}
+  fillRect(ml,y,mr-ml,22,0.14,0.39,0.92);
+  cs.push('1 1 1 rg');
+  text(ml+6,y+5,'CATALOGO DE PRECIOS RECOMENDADOS',13,true);
+  cs.push('0 0 0 rg');
+  y-=24;
+  text(ml,y,'Descuento aplicado: '+dto+'%    Fecha: '+todayStr(),9,false);
+  y-=18;
+  cs.push('0.5 w');line(ml,y,mr,y);y-=14;
+  var cols=[ml,ml+230,ml+330,ml+420,ml+470];
+  fillRect(ml,y-2,mr-ml,14,0.22,0.39,0.92);
+  cs.push('1 1 1 rg');
+  ['Producto','PVP (IVA)','Precio recom.','Uds.','Familia'].forEach(function(h,i){text(cols[i],y,h,8,true);});
+  cs.push('0 0 0 rg');
+  y-=lh;
+  var alt=false;
+  prods.forEach(function(p){
+    if(y<60){cs.push('showpage');y=780;}
+    if(alt) fillRect(ml,y-2,mr-ml,14,0.94,0.96,0.99);
+    alt=!alt;
+    var pvpSinIva=p.pvp/1.10;
+    var neto=pvpSinIva*(1-dto/100);
+    text(cols[0],y,(p.nombre||'').substring(0,36),8,false);
+    text(cols[1],y,fmNum(p.pvp),8,false);
+    text(cols[2],y,fmNum(neto),8,true);
+    text(cols[3],y,String(p.unidades||1),8,false);
+    text(cols[4],y,p.orden||'',8,false);
+    y-=lh;
+  });
+  y-=6;cs.push('0.5 w');line(ml,y,mr,y);y-=12;
+  text(ml,y,'Total productos: '+prods.length,8,false);
+  var sc=cs.join('\n');
+  pdfParts.push('%PDF-1.4\n');offsets.push(pdfParts.join('').length);
+  pdfParts.push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');offsets.push(pdfParts.join('').length);
+  pdfParts.push('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');offsets.push(pdfParts.join('').length);
+  pdfParts.push('3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> >>\nendobj\n');
+  offsets.push(pdfParts.join('').length);
+  pdfParts.push('4 0 obj\n<< /Length '+sc.length+' >>\nstream\n'+sc+'\nendstream\nendobj\n');offsets.push(pdfParts.join('').length);
+  pdfParts.push('5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>\nendobj\n');offsets.push(pdfParts.join('').length);
+  pdfParts.push('6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>\nendobj\n');
+  var xrefOff=pdfParts.join('').length;
+  pdfParts.push('xref\n0 7\n0000000000 65535 f \n');
+  offsets.forEach(function(o){pdfParts.push(('0000000000'+o).slice(-10)+' 00000 n \n');});
+  pdfParts.push('trailer\n<< /Size 7 /Root 1 0 R >>\nstartxref\n'+xrefOff+'\n%%EOF');
+  var blob=pdfToBlob(pdfParts.join(''));
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Catalogo_precios_'+todayStr().replace(/\//g,'-')+'.pdf';
+  a.click();
+  cerrarMiniModal();
+  toast('PDF generado ✓');
+}
+// ██ BLOQUE:CATALOGO-FIN ██
 // ██ BLOQUE:OFERTAS-INICIO ██
 function saveOferta(){
   var nombre=document.getElementById('ofer-nombre').value.trim();if(!nombre){toast('El nombre es obligatorio','err');return;}
