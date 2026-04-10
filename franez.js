@@ -1297,18 +1297,17 @@ function abrirModalCatalogo(){
 }
 function exportarCatalogoExcel(){
   var dto=parseFloat(document.getElementById('mm-cat-dto').value)||0;
-  var prods=sortProductos(state.productos);
+  var prods=sortProductos(state.productos).filter(function(p){return parseFloat(p.pvp)>0;});
   if(!prods.length){toast('Sin productos','err');return;}
   function doExcel(){
     var wb=XLSX.utils.book_new();
-    var filas=[['Producto','PVP (IVA incl.)','Precio recomendado ('+dto+'% dto)','Uds. envase','Familia']];
+    var filas=[['Producto','Precio recomendado']];
     prods.forEach(function(p){
-      var pvpSinIva=p.pvp/1.10;
-      var neto=parseFloat((pvpSinIva*(1-dto/100)).toFixed(2));
-      filas.push([p.nombre||'',parseFloat(p.pvp)||0,neto,p.unidades||1,p.orden||'']);
+      var precio=parseFloat((p.pvp*(1-dto/100)).toFixed(2));
+      filas.push([p.nombre||'',precio]);
     });
     var ws=XLSX.utils.aoa_to_sheet(filas);
-    ws['!cols']=[{wch:42},{wch:16},{wch:22},{wch:12},{wch:12}];
+    ws['!cols']=[{wch:42},{wch:20}];
     XLSX.utils.book_append_sheet(wb,ws,'Precios');
     XLSX.writeFile(wb,'Precios_recomendados_'+todayStr().replace(/\//g,'-')+'.xlsx');
     cerrarMiniModal();
@@ -1323,44 +1322,41 @@ function exportarCatalogoExcel(){
 }
 function exportarCatalogoPDF(){
   var dto=parseFloat(document.getElementById('mm-cat-dto').value)||0;
-  var prods=sortProductos(state.productos);
+  var prods=sortProductos(state.productos).filter(function(p){return parseFloat(p.pvp)>0;});
   if(!prods.length){toast('Sin productos','err');return;}
   var cs=[],offsets=[],pdfParts=[];
   function e(s){return s?String(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)').replace(/[\x00-\x08\x0b\x0e-\x1f]/g,'').substring(0,200):'';}
   function latinEncode(s){return String(s||'').replace(/\u00e1/g,'\xe1').replace(/\u00e9/g,'\xe9').replace(/\u00ed/g,'\xed').replace(/\u00f3/g,'\xf3').replace(/\u00fa/g,'\xfa').replace(/\u00c1/g,'\xc1').replace(/\u00c9/g,'\xc9').replace(/\u00cd/g,'\xcd').replace(/\u00d3/g,'\xd3').replace(/\u00da/g,'\xda').replace(/\u00f1/g,'\xf1').replace(/\u00d1/g,'\xd1').replace(/\u00fc/g,'\xfc').replace(/\u00dc/g,'\xdc').replace(/[^\x00-\xff]/g,'?');}
   function pe(s){return e(latinEncode(s||''));}
-  var ml=30,y=800,lh=17;
-  var cols=[ml,ml+270,ml+360,ml+430,ml+480];
-  var mr=565;
+  var ml=40,mr=555,y=800,lh=18;
   function text(x,yy,str,size,bold){cs.push('BT /'+(bold?'F2':'F1')+' '+size+' Tf '+x+' '+yy+' Td ('+pe(str)+') Tj ET');}
   function fillRect(x,yy,w,h,r,g,b){cs.push(r+' '+g+' '+b+' rg '+x+' '+yy+' '+w+' '+h+' re f 0 0 0 rg');}
   function line(x1,y1,x2,y2){cs.push(x1+' '+y1+' m '+x2+' '+y2+' l S');}
-  fillRect(ml,y,mr-ml,22,0.14,0.39,0.92);
-  cs.push('1 1 1 rg');
-  text(ml+6,y+5,'PRECIOS RECOMENDADOS',13,true);
-  cs.push('0 0 0 rg');
-  y-=24;
-  text(ml,y,'Descuento: '+dto+'%    Fecha: '+todayStr(),9,false);
-  y-=18;
-  cs.push('0.5 w');line(ml,y,mr,y);y-=14;
-  fillRect(ml,y-2,mr-ml,14,0.22,0.39,0.92);
-  cs.push('1 1 1 rg');
-  ['Producto','PVP (IVA)','P. recomendado','Uds.','Familia'].forEach(function(h,i){text(cols[i],y,h,8,true);});
-  cs.push('0 0 0 rg');
-  y-=lh;
+  function cabeceraPagina(){
+    fillRect(ml,y,mr-ml,24,0.14,0.39,0.92);
+    cs.push('1 1 1 rg');
+    text(ml+8,y+7,'PRECIOS RECOMENDADOS',14,true);
+    cs.push('0 0 0 rg');
+    y-=28;
+    text(ml,y,'Descuento aplicado: '+dto+'%      Fecha: '+todayStr(),9,false);
+    y-=16;
+    cs.push('0.5 w');line(ml,y,mr,y);y-=14;
+    fillRect(ml,y-3,mr-ml,16,0.22,0.39,0.92);
+    cs.push('1 1 1 rg');
+    text(ml+4,y,'Producto',9,true);
+    text(440,y,'Precio recomendado',9,true);
+    cs.push('0 0 0 rg');
+    y-=lh;
+  }
+  cabeceraPagina();
   var alt=false;
   prods.forEach(function(p){
-    if(y<60){cs.push('showpage');y=780;}
-    if(alt) fillRect(ml,y-2,mr-ml,lh-1,0.94,0.96,0.99);
+    if(y<60){cs.push('showpage');y=800;cabeceraPagina();}
+    if(alt) fillRect(ml,y-3,mr-ml,lh,0.95,0.97,1.0);
     alt=!alt;
-    var pvpSinIva=p.pvp/1.10;
-    var neto=pvpSinIva*(1-dto/100);
-    var nombre=(p.nombre||'').substring(0,42);
-    text(cols[0],y,nombre,8,false);
-    text(cols[1],y,fmNum(p.pvp),8,false);
-    text(cols[2],y,fmNum(neto),8,true);
-    text(cols[3],y,String(p.unidades||1),8,false);
-    text(cols[4],y,p.orden||'',8,false);
+    var precio=(p.pvp*(1-dto/100)).toFixed(2).replace('.',',');
+    text(ml+4,y,(p.nombre||'').substring(0,55),9,false);
+    text(440,y,precio+' EUR',9,true);
     y-=lh;
   });
   y-=6;cs.push('0.5 w');line(ml,y,mr,y);y-=12;
@@ -1384,7 +1380,7 @@ function exportarCatalogoPDF(){
   a.download='Precios_recomendados_'+todayStr().replace(/\//g,'-')+'.pdf';
   a.click();
   cerrarMiniModal();
-  toast('PDF generado ✓');
+  toast('PDF generado \u2713');
 }
 // ██ BLOQUE:CATALOGO-FIN ██
 // ██ BLOQUE:OFERTAS-INICIO ██
