@@ -1,4 +1,4 @@
-﻿// ██ BLOQUE:ESTADO-GLOBAL-INICIO ██
+// ██ BLOQUE:ESTADO-GLOBAL-INICIO ██
 var state = {
   clientes:[],productos:[],ofertas:[],
   pedidos:[
@@ -1299,27 +1299,26 @@ function exportarCatalogoExcel(){
   var dto=parseFloat(document.getElementById('mm-cat-dto').value)||0;
   var prods=sortProductos(state.productos);
   if(!prods.length){toast('Sin productos','err');return;}
-  // SheetJS desde CDN
-  var script=document.createElement('script');
-  script.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-  script.onload=function(){
+  function doExcel(){
     var wb=XLSX.utils.book_new();
-    var filas=[['Producto','PVP (IVA incl.)','Precio recomendado','Uds. envase','Familia']];
+    var filas=[['Producto','PVP (IVA incl.)','Precio recomendado ('+dto+'% dto)','Uds. envase','Familia']];
     prods.forEach(function(p){
       var pvpSinIva=p.pvp/1.10;
       var neto=parseFloat((pvpSinIva*(1-dto/100)).toFixed(2));
       filas.push([p.nombre||'',parseFloat(p.pvp)||0,neto,p.unidades||1,p.orden||'']);
     });
     var ws=XLSX.utils.aoa_to_sheet(filas);
-    // Ancho de columnas
-    ws['!cols']=[{wch:40},{wch:16},{wch:20},{wch:12},{wch:12}];
+    ws['!cols']=[{wch:42},{wch:16},{wch:22},{wch:12},{wch:12}];
     XLSX.utils.book_append_sheet(wb,ws,'Precios');
-    var hoy=todayStr().replace(/\//g,'-');
-    XLSX.writeFile(wb,'Precios_recomendados_'+hoy+'.xlsx');
+    XLSX.writeFile(wb,'Precios_recomendados_'+todayStr().replace(/\//g,'-')+'.xlsx');
     cerrarMiniModal();
-    toast('Excel generado ✓');
-  };
-  script.onerror=function(){toast('Error cargando librería Excel','err');};
+    toast('Excel generado \u2713');
+  }
+  if(window.XLSX){doExcel();return;}
+  var script=document.createElement('script');
+  script.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  script.onload=function(){doExcel();};
+  script.onerror=function(){toast('Sin conexion para cargar Excel. Intentalo con conexion activa.','err');};
   document.head.appendChild(script);
 }
 function exportarCatalogoPDF(){
@@ -1387,7 +1386,6 @@ function exportarCatalogoPDF(){
   cerrarMiniModal();
   toast('PDF generado ✓');
 }
-// ██ BLOQUE:CATALOGO-FIN ██
 // ██ BLOQUE:CATALOGO-FIN ██
 // ██ BLOQUE:OFERTAS-INICIO ██
 function saveOferta(){
