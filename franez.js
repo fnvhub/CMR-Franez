@@ -2229,7 +2229,7 @@ function renderPlanificadorSemanal(){
           var icon={rojo:'🔴',amarillo:'🟡',verde:'🟢',gris:'⚪'}[sem];
           var tipo=c.tipoVisita?'<span style="background:var(--cobalt);color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;margin-left:4px">'+c.tipoVisita+'</span>':'';
           var uv=c.ultimaVisita?'<span style="font-size:11px;opacity:.7"> · '+c.ultimaVisita+'</span>':'';
-          html+='<div class="visita-card semaforo-'+sem+'" onclick="verBriefingDesde(''+c.id+'')">'+
+          html+='<div class="visita-card semaforo-'+sem+'" onclick="verBriefingDesde(\''+c.id+'\')">'+
             icon+' <strong>'+escH(c.nombreCompleto)+'</strong>'+tipo+uv+
           '</div>';
           mostrados++;
