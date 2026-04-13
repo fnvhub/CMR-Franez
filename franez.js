@@ -2185,7 +2185,7 @@ function renderPlanificadorSemanal(){
 
     // Selector de zona principal
     var zonas=getZonasDisponibles();
-    html+='<select onchange="asignarZonaDia(''+iso+'',this.value)" style="width:100%;min-height:36px;font-size:12px;background:var(--slate);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;margin-bottom:6px">'+
+    html+='<select onchange="asignarZonaDia(\''+iso+'\',this.value)" style="width:100%;min-height:36px;font-size:12px;background:var(--slate);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;margin-bottom:6px">'+
       '<option value="">-- Sin zona --</option>'+
       zonas.map(function(z){return '<option value="'+z+'"'+(z===zonaAsignada?' selected':'')+'>'+z+'</option>';}).join('')+
     '</select>';
@@ -2193,16 +2193,16 @@ function renderPlanificadorSemanal(){
     // Toggle prospección por día
     var prospActivo=prospData.activo;
     html+='<div style="margin-bottom:8px">';
-    html+='<button onclick="toggleProspeccion(''+iso+'')" style="width:100%;background:'+(prospActivo?'var(--cobalt)':'var(--slate2)')+';color:'+(prospActivo?'#fff':'var(--text2)')+';border:1px solid '+(prospActivo?'var(--cobalt)':'var(--border)')+';border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;font-weight:'+(prospActivo?'700':'400')+'">'+
+    html+='<button onclick="toggleProspeccion(\''+iso+'\')" style="width:100%;background:'+(prospActivo?'var(--cobalt)':'var(--slate2)')+';color:'+(prospActivo?'#fff':'var(--text2)')+';border:1px solid '+(prospActivo?'var(--cobalt)':'var(--border)')+';border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;font-weight:'+(prospActivo?'700':'400')+'">'+
       '🔍 '+(prospActivo?'Prospectando':'Prospección')+
     '</button>';
     if(prospActivo){
       html+='<div style="margin-top:5px;display:flex;flex-direction:column;gap:4px">'+
         '<input type="text" placeholder="Zona libre..." value="'+escH(prospData.zona||'')+'" '+
-          'onchange="guardarProspeccion(''+iso+'',this.value,document.getElementById('prosp-notas-'+iso+'').value)" '+
+          'onchange="guardarProspeccion(\''+iso+'\',this.value,document.getElementById(\'prosp-notas-'+iso+'\').value)" '+
           'style="width:100%;background:var(--slate2);border:1px solid var(--cobalt);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px">'+
         '<textarea id="prosp-notas-'+iso+'" placeholder="Notas de prospección..." '+
-          'onchange="guardarProspeccion(''+iso+'',this.previousElementSibling.value,this.value)" '+
+          'onchange="guardarProspeccion(\''+iso+'\',this.previousElementSibling.value,this.value)" '+
           'style="width:100%;background:var(--slate2);border:1px solid var(--cobalt);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;min-height:56px;resize:vertical;font-family:inherit">'+escH(prospData.notas||'')+'</textarea>'+
       '</div>';
     }
