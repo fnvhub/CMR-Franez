@@ -1,4 +1,3 @@
-// ██ BLOQUE:ESTADO-GLOBAL-INICIO ██
 var state = {
   clientes:[],productos:[],ofertas:[],
   pedidos:[
@@ -7,7 +6,7 @@ var state = {
     {clienteId:'',ofertaId:'',lineas:[],portes:'auto',dtoActual:0,notas:''}
   ],
   historial:[],stock:{},delegado:'',campanas:[],
-  config:{umbralUnidades:12,umbralPedidos:2,margenMinDto:3,umbralAvisoUds:5},
+  config:{umbralUnidades:12,umbralPedidos:2,margenMinDto:3},
   rutaDia:{fecha:'',clientes:[]},
   acumuladoMensual:{}
 };
@@ -203,7 +202,7 @@ function loadState(){
       return (hoy-fin)<cutoff;
     });
   })();
-  var cfgDef={umbralUnidades:12,umbralPedidos:2,margenMinDto:3,umbralAvisoUds:5};
+  var cfgDef={umbralUnidades:12,umbralPedidos:2,margenMinDto:3};
   state.config=Object.assign({},cfgDef,tryParse('config',{}));
   state.acumuladoMensual=tryParse('acumuladoMensual',{});
 }
@@ -234,7 +233,7 @@ function showPanel(name,btn){
   if(name==='stock') renderStockList();
   if(name==='escalado') renderEscalado();
   if(name==='historial') renderHistorial();
-  if(name==='ajustes'){renderStats();var d=document.getElementById('ajuste-delegado');if(d) d.value=state.delegado;renderZonasList();var cu=document.getElementById('cfg-umbral-uds');if(cu) cu.value=state.config.umbralUnidades||12;var cp=document.getElementById('cfg-umbral-peds');if(cp) cp.value=state.config.umbralPedidos||2;var cm=document.getElementById('cfg-margen-dto');if(cm) cm.value=state.config.margenMinDto||3;var ca=document.getElementById('cfg-umbral-aviso-uds');if(ca) ca.value=state.config.umbralAvisoUds||5;}
+  if(name==='ajustes'){renderStats();var d=document.getElementById('ajuste-delegado');if(d) d.value=state.delegado;renderZonasList();}
   if(name==='ia') initIAPanel();
   if(name==='campanas') renderCampanas();
   if(name==='visitas'){loadRuta();initVisitasPanel();}
@@ -1697,7 +1696,7 @@ function renderStats(){
     '<div class="stat-card"><div class="stat-value" style="color:var(--red)">'+sinStock+'</div><div class="stat-label">Sin stock</div></div>';
   renderAcumuladoMensual();
 }
-function saveConfig(){state.config={umbralUnidades:parseInt(document.getElementById('cfg-umbral-uds').value)||12,umbralPedidos:parseInt(document.getElementById('cfg-umbral-peds').value)||2,margenMinDto:parseInt(document.getElementById('cfg-margen-dto').value)||3,umbralAvisoUds:parseInt(document.getElementById('cfg-umbral-aviso-uds').value)||5};saveState();toast('Configuraci\u00f3n guardada \u2713');}
+function saveConfig(){state.config={umbralUnidades:parseInt(document.getElementById('cfg-umbral-uds').value)||12,umbralPedidos:parseInt(document.getElementById('cfg-umbral-peds').value)||2,margenMinDto:parseInt(document.getElementById('cfg-margen-dto').value)||3};saveState();toast('Configuraci\u00f3n guardada \u2713');}
 function saveDelegado(){state.delegado=document.getElementById('ajuste-delegado').value.trim();saveState();toast('Delegado guardado \u2713');}
 function exportarBackup(){
   var data={clientes:state.clientes,productos:state.productos,ofertas:state.ofertas,pedidos:state.pedidos,historial:state.historial,stock:state.stock,delegado:state.delegado,campanas:state.campanas,config:state.config};
@@ -1962,12 +1961,12 @@ function mostrarAvisoCampLinea(prodId){
   if(!div||!txt) return;
   var prod=getProductoById(prodId);
   if(!prod){div.classList.add('hidden');return;}
+  // Descuento actual del cliente en este pedido
   var p=state.pedidos[currentOrder];
   var dtoActual=p.dtoActual||0;
   var udsActuales=parseInt(document.getElementById('inp-uds').value)||1;
   var prodNombre=prod.nombre.toLowerCase();
-  var margen=state.config.margenMinDto||3;
-  var umbralAviso=state.config.umbralAvisoUds||5;
+  // Buscar campañas activas/preoferta con este producto
   var avisos=[];
   state.campanas.forEach(function(camp){
     var estado=getCampanaEstado(camp);
@@ -1979,45 +1978,26 @@ function mostrarAvisoCampLinea(prodId){
       return prodNombre.indexOf(pnl)>-1||pnl.indexOf(prodNombre)>-1;
     });
     if(!coincide) return;
-    // Tramos que mejoran el dto del cliente, ordenados por uds asc
-    var tramosConMejora=(camp.tramos||[]).filter(function(t){
-      return t.dto>=(dtoActual+margen);
-    }).sort(function(a,b){return a.uds-b.uds;});
-    if(!tramosConMejora.length) return;
-    // Tramo ya alcanzado
-    var tramoAlcanzado=null;
-    tramosConMejora.forEach(function(t){if(t.uds<=udsActuales) tramoAlcanzado=t;});
-    // Siguiente tramo por encima de las uds actuales
-    var tramoSiguiente=tramosConMejora.find(function(t){return t.uds>udsActuales;});
-    if(tramoAlcanzado){
-      var mejora=tramoAlcanzado.dto-dtoActual;
-      avisos.push({camp:camp,estado:estado,tramo:tramoAlcanzado,mejora:mejora,faltan:0,modo:'alcanzado'});
-    } else if(tramoSiguiente){
-      var faltan=tramoSiguiente.uds-udsActuales;
-      if(faltan<=umbralAviso){
-        var mejora2=tramoSiguiente.dto-dtoActual;
-        avisos.push({camp:camp,estado:estado,tramo:tramoSiguiente,mejora:mejora2,faltan:faltan,modo:'proximo'});
-      }
-    }
+    // Buscar el tramo que alcanza con las uds actuales Y mejora el dto
+    var margen=state.config.margenMinDto||3;
+    var tramosValidos=(camp.tramos||[]).filter(function(t){
+      return t.uds<=udsActuales&&t.dto>=(dtoActual+margen);
+    });
+    if(!tramosValidos.length) return;
+    var mejorTramo=tramosValidos[tramosValidos.length-1];
+    var mejora=mejorTramo.dto-dtoActual;
+    avisos.push({camp:camp,estado:estado,tramo:mejorTramo,mejora:mejora});
   });
   if(!avisos.length){div.classList.add('hidden');return;}
-  avisos.sort(function(a,b){return a.faltan-b.faltan;});
   var a=avisos[0];
   var esPre=a.estado==='preoferta';
-  var prefijo=esPre?'\u23f0 PRECAMP\u00d1A':'\u26a1 CAMP\u00d1A';
-  var msg;
-  if(a.modo==='alcanzado'){
-    msg=prefijo+' <strong>'+escH(a.camp.nombre)+'</strong>: \u2713 '+a.tramo.uds+' uds &rarr; <strong>'+a.tramo.dto+'%</strong> (+'+a.mejora+' sobre tu '+dtoActual+'%)';
-  } else {
-    msg=prefijo+' <strong>'+escH(a.camp.nombre)+'</strong>: con <strong>'+a.faltan+' uds m&aacute;s</strong> llegas a '+a.tramo.uds+' uds y consigues <strong>'+a.tramo.dto+'%</strong> (+'+a.mejora+'%)';
-  }
-  txt.innerHTML=msg;
+  txt.innerHTML=(esPre?'\u23f0 PRECAMPA\u00d1A':'\u26a1 CAMPA\u00d1A')+' <strong>'+escH(a.camp.nombre)+'</strong>: con '+a.tramo.uds+' uds tienes <strong>'+a.tramo.dto+'%</strong> (+'+a.mejora+' sobre tu '+dtoActual+'%)';
   div.classList.remove('hidden');
 }
 function mostrarAvisosAcumulados(clienteId){
   var div=document.getElementById('aviso-camp-acumulado');if(!div) return;
   if(!clienteId){div.classList.add('hidden');div.innerHTML='';return;}
-  var umbralAviso=state.config.umbralAvisoUds||5;
+  var UMBRALES=[12,24,48,72];
   var resultados=[];
   state.campanas.forEach(function(camp){
     var estado=getCampanaEstado(camp);
@@ -2033,7 +2013,6 @@ function mostrarAvisosAcumulados(clienteId){
       });
     }
     if(!prodIds.length) return;
-    // Calcular uds acumuladas de este cliente en estos productos
     var totalUds=0;
     state.historial.forEach(function(h){
       if(h.clienteId!==clienteId) return;
@@ -2041,30 +2020,22 @@ function mostrarAvisosAcumulados(clienteId){
       h.pedido.lineas.forEach(function(l){if(prodIds.indexOf(l.prodId)>-1) totalUds+=(l.uds||1);});
     });
     if(!totalUds) return;
-    // Usar los tramos reales de la campaña para calcular el siguiente umbral
-    var tramos=(camp.tramos||[]).slice().sort(function(a,b){return a.uds-b.uds;});
-    var tramoSig=tramos.find(function(t){return t.uds>totalUds;});
-    var tramoActual=null;
-    tramos.forEach(function(t){if(t.uds<=totalUds) tramoActual=t;});
-    if(tramoSig){
-      var faltan=tramoSig.uds-totalUds;
-      // Solo avisar si estamos "a tiro" (faltan <= umbral)
-      if(faltan>umbralAviso) return;
-      resultados.push({camp:camp,estado:estado,totalUds:totalUds,tramoSig:tramoSig,tramoActual:tramoActual,faltan:faltan,modo:'proximo'});
-    } else if(tramoActual){
-      // Umbral máximo alcanzado: mostrar siempre
-      resultados.push({camp:camp,estado:estado,totalUds:totalUds,tramoSig:null,tramoActual:tramoActual,faltan:0,modo:'maximo'});
-    }
+    var umbralSig=null;
+    for(var i=0;i<UMBRALES.length;i++){if(UMBRALES[i]>totalUds){umbralSig=UMBRALES[i];break;}}
+    var umbralAlcanzado=0;
+    for(var j=0;j<UMBRALES.length;j++){if(totalUds>=UMBRALES[j]) umbralAlcanzado=UMBRALES[j];}
+    resultados.push({camp:camp,estado:estado,totalUds:totalUds,umbralSig:umbralSig,umbralAlcanzado:umbralAlcanzado});
   });
   if(!resultados.length){div.classList.add('hidden');div.innerHTML='';return;}
-  var h='<div class="aviso-camp-acum"><div class="aviso-camp-acum-title">&#128202; Acumulados en campa\u00f1as activas</div>';
+  var h='<div class="aviso-camp-acum"><div class="aviso-camp-acum-title">&#128202; Acumulados en campañas activas</div>';
   resultados.forEach(function(r){
-    var estadoTxt=r.estado==='activa'?'<span style="color:#6ee7b7;font-weight:700">CAMP\u00d1A</span>':'<span style="color:#fcd34d;font-weight:700">PRECAMP\u00d1A</span>';
+    var estadoTxt=r.estado==='activa'?'<span style="color:#6ee7b7;font-weight:700">CAMPAÑA</span>':'<span style="color:#fcd34d;font-weight:700">PRECAMPAÑA</span>';
     var msg;
-    if(r.modo==='maximo'){
-      msg='\u2705 <strong>'+escH(r.camp.nombre)+'</strong> ('+estadoTxt+'): '+r.totalUds+' uds \u2014 <strong>umbral m\u00e1ximo ('+r.tramoActual.uds+' uds) alcanzado</strong>';
-    } else {
-      msg='\u26a1 <strong>'+escH(r.camp.nombre)+'</strong> ('+estadoTxt+'): '+r.totalUds+' uds acumuladas \u2014 con <strong>'+r.faltan+' m\u00e1s</strong> llegas a <strong>'+r.tramoSig.uds+' uds</strong> ('+r.tramoSig.dto+'%)';
+    if(r.umbralSig){
+      var faltan=r.umbralSig-r.totalUds;
+      msg='⚡ <strong>'+escH(r.camp.nombre)+'</strong> ('+estadoTxt+'): '+r.totalUds+' uds acumuladas — con <strong>'+faltan+' más</strong> llegas a <strong>'+r.umbralSig+' uds</strong>';
+    }else{
+      msg='✅ <strong>'+escH(r.camp.nombre)+'</strong> ('+estadoTxt+'): '+r.totalUds+' uds — <strong>umbral máximo ('+r.umbralAlcanzado+' uds) alcanzado</strong>';
     }
     h+='<div class="aviso-camp-acum-item">'+msg+'</div>';
   });
@@ -2143,10 +2114,24 @@ function renderPlanificadorSemanal(){
   var hoy=new Date(); hoy.setHours(0,0,0,0);
   var dias=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
   var planState=getSemanaState();
-  
+
   // Label semana
   var viernes=new Date(lunes); viernes.setDate(lunes.getDate()+4);
   document.getElementById('semana-label').textContent=fechaStr(lunes)+' – '+fechaStr(viernes);
+
+  // Calcular qué clientes ya están asignados en OTROS días (exclusión cruzada)
+  var clientesOcupados={};
+  for(var d=0;d<6;d++){
+    var fdCheck=new Date(lunes); fdCheck.setDate(lunes.getDate()+d);
+    var isoCheck=fechaISO(fdCheck);
+    var zonaCheck=planState[isoCheck]||'';
+    if(zonaCheck){
+      getClientesPorZona(zonaCheck).forEach(function(c){
+        if(!clientesOcupados[c.id]) clientesOcupados[c.id]=[];
+        clientesOcupados[c.id].push(isoCheck);
+      });
+    }
+  }
 
   var html='';
   for(var i=0;i<6;i++){
@@ -2154,24 +2139,42 @@ function renderPlanificadorSemanal(){
     var iso=fechaISO(fecha);
     var esHoy=fecha.getTime()===hoy.getTime();
     var zonaAsignada=planState[iso]||'';
-    
+    var prospData=planState[iso+'_prosp']||{activo:false,zona:'',notas:''};
+
     html+='<div class="dia-col">';
-    html+='<div class="dia-col-header'+(esHoy?' hoy':'')+'">'+
-      '<span>'+(esHoy?'⚡ ':'')+ dias[i]+' '+('0'+fecha.getDate()).slice(-2)+'/'+('0'+(fecha.getMonth()+1)).slice(-2)+'</span>'+
+    html+='<div class="dia-col-header'+(esHoy?' hoy':'')+'">' +
+      '<span>'+(esHoy?'⚡ ':'')+dias[i]+' '+('0'+fecha.getDate()).slice(-2)+'/'+('0'+(fecha.getMonth()+1)).slice(-2)+'</span>'+
     '</div>';
-    
-    // Selector de zona
+
+    // Selector de zona principal
     var zonas=getZonasDisponibles();
-    html+='<select onchange="asignarZonaDia(\''+iso+'\',this.value)" style="width:100%;min-height:36px;font-size:12px;background:var(--slate);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;margin-bottom:8px">'+
+    html+='<select onchange="asignarZonaDia(''+iso+'',this.value)" style="width:100%;min-height:36px;font-size:12px;background:var(--slate);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;margin-bottom:6px">'+
       '<option value="">-- Sin zona --</option>'+
       zonas.map(function(z){return '<option value="'+z+'"'+(z===zonaAsignada?' selected':'')+'>'+z+'</option>';}).join('')+
     '</select>';
 
-    // Clientes de esa zona con semáforo
+    // Toggle prospección por día
+    var prospActivo=prospData.activo;
+    html+='<div style="margin-bottom:8px">';
+    html+='<button onclick="toggleProspeccion(''+iso+'')" style="width:100%;background:'+(prospActivo?'var(--cobalt)':'var(--slate2)')+';color:'+(prospActivo?'#fff':'var(--text2)')+';border:1px solid '+(prospActivo?'var(--cobalt)':'var(--border)')+';border-radius:6px;padding:5px 8px;font-size:12px;cursor:pointer;font-weight:'+(prospActivo?'700':'400')+'">'+
+      '🔍 '+(prospActivo?'Prospectando':'Prospección')+
+    '</button>';
+    if(prospActivo){
+      html+='<div style="margin-top:5px;display:flex;flex-direction:column;gap:4px">'+
+        '<input type="text" placeholder="Zona libre..." value="'+escH(prospData.zona||'')+'" '+
+          'onchange="guardarProspeccion(''+iso+'',this.value,document.getElementById('prosp-notas-'+iso+'').value)" '+
+          'style="width:100%;background:var(--slate2);border:1px solid var(--cobalt);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px">'+
+        '<textarea id="prosp-notas-'+iso+'" placeholder="Notas de prospección..." '+
+          'onchange="guardarProspeccion(''+iso+'',this.previousElementSibling.value,this.value)" '+
+          'style="width:100%;background:var(--slate2);border:1px solid var(--cobalt);color:var(--text);padding:5px 8px;border-radius:6px;font-size:12px;min-height:56px;resize:vertical;font-family:inherit">'+escH(prospData.notas||'')+'</textarea>'+
+      '</div>';
+    }
+    html+='</div>';
+
+    // Clientes de esa zona con semáforo + exclusión cruzada
     if(zonaAsignada){
       var cliZona=getClientesPorZona(zonaAsignada);
       if(cliZona.length){
-        // Ordenar por urgencia
         cliZona.sort(function(a,b){
           var sa=calcSemaforo(a),sb=calcSemaforo(b);
           var orden={rojo:0,amarillo:1,verde:2,gris:3};
@@ -2179,16 +2182,26 @@ function renderPlanificadorSemanal(){
           var ta=a.tipoVisita||'Z',tb=b.tipoVisita||'Z';
           return ta.localeCompare(tb);
         });
-        cliZona.slice(0,8).forEach(function(c){
+        var mostrados=0;
+        cliZona.forEach(function(c){
+          // Excluir si ya aparece en otro día distinto de este
+          var otrosDias=(clientesOcupados[c.id]||[]).filter(function(d){return d!==iso;});
+          if(otrosDias.length) return;
+          if(mostrados>=8) return;
           var sem=calcSemaforo(c);
           var icon={rojo:'🔴',amarillo:'🟡',verde:'🟢',gris:'⚪'}[sem];
           var tipo=c.tipoVisita?'<span style="background:var(--cobalt);color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;margin-left:4px">'+c.tipoVisita+'</span>':'';
           var uv=c.ultimaVisita?'<span style="font-size:11px;opacity:.7"> · '+c.ultimaVisita+'</span>':'';
-          html+='<div class="visita-card semaforo-'+sem+'" onclick="verBriefingDesde(\''+c.id+'\')">'+
+          html+='<div class="visita-card semaforo-'+sem+'" onclick="verBriefingDesde(''+c.id+'')">'+
             icon+' <strong>'+escH(c.nombreCompleto)+'</strong>'+tipo+uv+
           '</div>';
+          mostrados++;
         });
-        if(cliZona.length>8) html+='<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">+'+( cliZona.length-8)+' más</div>';
+        var totalVisibles=cliZona.filter(function(c){
+          return !((clientesOcupados[c.id]||[]).filter(function(d){return d!==iso;}).length);
+        }).length;
+        if(totalVisibles>8) html+='<div style="font-size:11px;color:var(--text3);text-align:center;padding:4px">+'+(totalVisibles-8)+' más</div>';
+        if(totalVisibles===0) html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Sin clientes disponibles esta semana</div>';
       } else {
         html+='<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px">Sin clientes en '+zonaAsignada+'</div>';
       }
@@ -2198,11 +2211,24 @@ function renderPlanificadorSemanal(){
   document.getElementById('semana-dias-grid').innerHTML=html;
 }
 
-function asignarZonaDia(iso, zona){
+function toggleProspeccion(iso){
   var s=getSemanaState();
-  if(zona) s[iso]=zona; else delete s[iso];
+  var key=iso+'_prosp';
+  var actual=s[key]||{activo:false,zona:'',notas:''};
+  actual.activo=!actual.activo;
+  s[key]=actual;
   saveSemanaState(s);
   renderPlanificadorSemanal();
+}
+
+function guardarProspeccion(iso,zona,notas){
+  var s=getSemanaState();
+  var key=iso+'_prosp';
+  var actual=s[key]||{activo:true,zona:'',notas:''};
+  actual.zona=zona||'';
+  actual.notas=notas||'';
+  s[key]=actual;
+  saveSemanaState(s);
 }
 
 function getZonasDisponibles(){
