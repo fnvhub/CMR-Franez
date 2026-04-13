@@ -772,10 +772,17 @@ function guardarEnHistorial(){
   if(cliObj) cliObj.ultimoPedido=todayStr();
   // Acumulado mensual
   var mesKey=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);})();
-  if(!state.acumuladoMensual[mesKey]) state.acumuladoMensual[mesKey]={total:0,uds:0,pedidos:0};
+  if(!state.acumuladoMensual[mesKey]) state.acumuladoMensual[mesKey]={total:0,uds:0,pedidos:0,tienda:0,medico:0};
   state.acumuladoMensual[mesKey].total+=c.total;
   state.acumuladoMensual[mesKey].uds+=c.totalUds;
   state.acumuladoMensual[mesKey].pedidos+=1;
+  // Contador 50/50: tienda=herbolario+farmacia, médico=resto
+  (function(){
+    var esp=(cliObj&&cliObj.especialidad||'').toLowerCase();
+    var esTienda=esp.indexOf('herbolario')>-1||esp.indexOf('farmacia')>-1||esp.indexOf('herbol')>-1||esp.indexOf('farm')>-1;
+    if(esTienda) state.acumuladoMensual[mesKey].tienda=(state.acumuladoMensual[mesKey].tienda||0)+1;
+    else state.acumuladoMensual[mesKey].medico=(state.acumuladoMensual[mesKey].medico||0)+1;
+  })();
   saveState();toast('Pedido guardado en historial \u2713');
 }
 
@@ -1695,6 +1702,36 @@ function renderStats(){
     '<div class="stat-card"><div class="stat-value" style="font-size:16px">'+fmNum(totalHist)+' &euro;</div><div class="stat-label">EUR historial</div></div>'+
     '<div class="stat-card"><div class="stat-value" style="color:var(--red)">'+sinStock+'</div><div class="stat-label">Sin stock</div></div>';
   renderAcumuladoMensual();
+  renderContador5050();
+}
+function renderContador5050(){
+  var div=document.getElementById('contador-5050');if(!div) return;
+  var mesKey=(function(){var d=new Date();return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2);})();
+  var datos=state.acumuladoMensual[mesKey]||{tienda:0,medico:0,pedidos:0};
+  var t=datos.tienda||0,m=datos.medico||0,total=t+m;
+  var pctT=total>0?Math.round((t/total)*100):0;
+  var pctM=total>0?Math.round((m/total)*100):0;
+  var colorT=pctT>=50?'#6ee7b7':'#fcd34d';
+  var colorM=pctM>=50?'#6ee7b7':'#fcd34d';
+  div.innerHTML=
+    '<div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:8px">Balance Tienda / Médico — '+(['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][new Date().getMonth()])+' '+new Date().getFullYear()+'</div>'+
+    '<div style="display:flex;gap:8px;margin-bottom:8px">'+
+      '<div style="flex:1;background:var(--slate2);border-radius:8px;padding:10px;text-align:center">'+
+        '<div style="font-size:22px;font-weight:700;color:'+colorT+'">'+t+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">🏪 Tienda</div>'+
+        '<div style="font-size:11px;color:'+colorT+';font-weight:700">'+pctT+'%</div>'+
+      '</div>'+
+      '<div style="flex:1;background:var(--slate2);border-radius:8px;padding:10px;text-align:center">'+
+        '<div style="font-size:22px;font-weight:700;color:'+colorM+'">'+m+'</div>'+
+        '<div style="font-size:11px;color:var(--text2)">🩺 Médico</div>'+
+        '<div style="font-size:11px;color:'+colorM+';font-weight:700">'+pctM+'%</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="background:var(--slate2);border-radius:6px;overflow:hidden;height:10px;display:flex">'+
+      '<div style="width:'+pctT+'%;background:#6ee7b7;transition:width .4s"></div>'+
+      '<div style="width:'+pctM+'%;background:#60a5fa;transition:width .4s"></div>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--text3);margin-top:5px;text-align:center">'+total+' pedidos categorizados este mes</div>';
 }
 function saveConfig(){state.config={umbralUnidades:parseInt(document.getElementById('cfg-umbral-uds').value)||12,umbralPedidos:parseInt(document.getElementById('cfg-umbral-peds').value)||2,margenMinDto:parseInt(document.getElementById('cfg-margen-dto').value)||3};saveState();toast('Configuraci\u00f3n guardada \u2713');}
 function saveDelegado(){state.delegado=document.getElementById('ajuste-delegado').value.trim();saveState();toast('Delegado guardado \u2713');}
@@ -2229,12 +2266,6 @@ function guardarProspeccion(iso,zona,notas){
   actual.notas=notas||'';
   s[key]=actual;
   saveSemanaState(s);
-}
-
-function getZonasDisponibles(){
-  var zonas=new Set();
-  state.clientes.forEach(function(c){if(c.zonaVisita) zonas.add(c.zonaVisita);});
-  return Array.from(zonas).sort();
 }
 
 function getClientesPorZona(zona){
