@@ -765,7 +765,7 @@ function guardarEnHistorial(){
   var chkPrueba=document.getElementById('chk-prueba');
   if(chkPrueba&&chkPrueba.checked){toast('Pedido de prueba \u2014 no guardado en historial','ok');return;}
   var c=calcPedido();var cliObj=getClienteById(p.clienteId);var oObj=getOfertaById(p.ofertaId);
-  var entry={fecha:nowStr(),ref:genRef(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
+  var entry={fecha:nowStr(),ref:genRef(),_ts:new Date().getTime(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
   if(state.historial.length){var last=state.historial[0];if(last.clienteId===entry.clienteId&&JSON.stringify(last.pedido.lineas)===JSON.stringify(p.lineas)){toast('Pedido id\u00e9ntico al \u00faltimo, no se guard\u00f3','err');return;}}
   state.historial.unshift(entry);
   if(state.historial.length>20) state.historial.pop();
