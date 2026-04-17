@@ -1041,6 +1041,7 @@ function saveCliente(){
     diasVisita:parseInt(document.getElementById('cli-dias-visita').value)||null,
     ultimaVisita:''
   };
+  obj._ts = new Date().getTime();
   if(editId){
     var existing=state.clientes.find(function(c){return c.id===editId;});
     if(existing){obj.ultimoPedido=existing.ultimoPedido||'';obj.ultimaVisita=existing.ultimaVisita||'';}
