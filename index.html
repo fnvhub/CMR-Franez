@@ -43,6 +43,15 @@
 <script type="module" src="sync.js"></script>
 </head>
 <body>
+<div id="error-log" style="position:fixed;bottom:0;left:0;right:0;background:red;color:white;font-size:12px;padding:8px;z-index:9999;display:none;max-height:200px;overflow:auto"></div>
+<script>
+window.onerror = function(msg, src, line) {
+  var d = document.getElementById('error-log');
+  d.style.display = 'block';
+  d.innerHTML += msg + ' (línea '+line+')<br>';
+};
+</script>
+<!-- ██ BLOQUE:NAV-INICIO ██ -->
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <nav id="nav">
   <span id="nav-title">&#9889; Franez v2.6.2</span>
