@@ -149,13 +149,14 @@ function loadState(){
       var remote = snapshot.val();
       var localTs = parseInt(localStorage.getItem('franez_ts')||'0');
       var remoteTs = remote._ts || 0;
+     // Siempre mergear historial y campañas, aunque local sea más reciente
+      if (remote.historial) state.historial = mergeById(state.historial, remote.historial);
+      if (remote.campanas) state.campanas = mergeById(state.campanas, remote.campanas);
       if (remoteTs <= localTs) return; // local es más reciente, no hacer nada
       // Remote es más reciente: merge por ID en colecciones, replace en el resto
       if (remote.clientes) state.clientes = mergeById(state.clientes, remote.clientes);
       if (remote.productos) state.productos = mergeById(state.productos, remote.productos);
       if (remote.ofertas) state.ofertas = mergeById(state.ofertas, remote.ofertas);
-      if (remote.historial) state.historial = mergeById(state.historial, remote.historial);
-      if (remote.campanas) state.campanas = mergeById(state.campanas, remote.campanas);
       if (remote.stock) state.stock = Object.assign({}, state.stock, remote.stock);
       if (remote.delegado) state.delegado = remote.delegado;
       if (remote.config) state.config = Object.assign({}, state.config, remote.config);
