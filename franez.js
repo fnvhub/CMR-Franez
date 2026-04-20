@@ -152,7 +152,10 @@ function loadState(){
      // Siempre mergear historial y campañas, aunque local sea más reciente
       if (remote.historial) state.historial = mergeById(state.historial, remote.historial);
       if (remote.campanas) state.campanas = mergeById(state.campanas, remote.campanas);
-      if (remoteTs <= localTs) return; // local es más reciente, no hacer nada
+      localStorage.setItem('historial',JSON.stringify(state.historial));
+      localStorage.setItem('campanas',JSON.stringify(state.campanas));
+      renderHistorial && renderHistorial();
+      if (remoteTs <= localTs) return;
       // Remote es más reciente: merge por ID en colecciones, replace en el resto
       if (remote.clientes) state.clientes = mergeById(state.clientes, remote.clientes);
       if (remote.productos) state.productos = mergeById(state.productos, remote.productos);
