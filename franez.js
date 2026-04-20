@@ -142,46 +142,6 @@ function savePedidos(){
 }
 function loadState(){
   function tryParse(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
-  // Intentar merge con Firebase al arrancar
-  if (window._fbDb && window._fbGet && window._fbRef) {
-    window._fbGet(window._fbRef(window._fbDb, 'franez')).then(function(snapshot) {
-      if (!snapshot.exists()) return;
-      var remote = snapshot.val();
-      var localTs = parseInt(localStorage.getItem('franez_ts')||'0');
-      var remoteTs = remote._ts || 0;
-     // Siempre mergear historial y campañas, aunque local sea más reciente
-      if (remote.historial) state.historial = mergeById(state.historial, remote.historial);
-      if (remote.campanas) state.campanas = mergeById(state.campanas, remote.campanas);
-      localStorage.setItem('historial',JSON.stringify(state.historial));
-      localStorage.setItem('campanas',JSON.stringify(state.campanas));
-      renderHistorial && renderHistorial();
-      if (remoteTs <= localTs) return;
-      // Remote es más reciente: merge por ID en colecciones, replace en el resto
-      if (remote.clientes) state.clientes = mergeById(state.clientes, remote.clientes);
-      if (remote.productos) state.productos = mergeById(state.productos, remote.productos);
-      if (remote.ofertas) state.ofertas = mergeById(state.ofertas, remote.ofertas);
-      if (remote.stock) state.stock = Object.assign({}, state.stock, remote.stock);
-      if (remote.delegado) state.delegado = remote.delegado;
-      if (remote.config) state.config = Object.assign({}, state.config, remote.config);
-      if (remote.acumuladoMensual) state.acumuladoMensual = Object.assign({}, state.acumuladoMensual, remote.acumuladoMensual);
-      localStorage.setItem('franez_ts', remoteTs);
-      // Guardar merged en localStorage
-      localStorage.setItem('clientes',JSON.stringify(state.clientes));
-      localStorage.setItem('productos',JSON.stringify(state.productos));
-      localStorage.setItem('ofertas',JSON.stringify(state.ofertas));
-      localStorage.setItem('historial',JSON.stringify(state.historial));
-      localStorage.setItem('campanas',JSON.stringify(state.campanas));
-      localStorage.setItem('stock',JSON.stringify(state.stock));
-      localStorage.setItem('delegado',state.delegado||'');
-      localStorage.setItem('config',JSON.stringify(state.config));
-      localStorage.setItem('acumuladoMensual',JSON.stringify(state.acumuladoMensual));
-      // Refrescar UI con datos mergeados
-      renderClientesList && renderClientesList();
-      renderHistorial && renderHistorial();
-      renderStats && renderStats();
-      toast('✓ Sincronizado con la nube');
-    }).catch(function(e){ console.warn('Firebase loadState error:', e); });
-  }
   state.clientes=tryParse('clientes',[]);
   state.productos=tryParse('productos',[]);
   state.ofertas=tryParse('ofertas',[]);
@@ -209,6 +169,52 @@ function loadState(){
   var cfgDef={umbralUnidades:12,umbralPedidos:2,margenMinDto:3};
   state.config=Object.assign({},cfgDef,tryParse('config',{}));
   state.acumuladoMensual=tryParse('acumuladoMensual',{});
+  // Merge con Firebase DESPUÉS de cargar localStorage (evita que tryParse machaque el merge)
+  if (window._fbDb && window._fbGet && window._fbRef) {
+    window._fbGet(window._fbRef(window._fbDb, 'franez')).then(function(snapshot) {
+      if (!snapshot.exists()) return;
+      var remote = snapshot.val();
+      var localTs = parseInt(localStorage.getItem('franez_ts')||'0');
+      var remoteTs = remote._ts || 0;
+      var changed = false;
+      // Historial y campañas: siempre mergear sin importar timestamps
+      if (remote.historial && Array.isArray(remote.historial)) {
+        var mh = mergeById(state.historial, remote.historial);
+        if (mh.length !== state.historial.length) { state.historial = mh; changed = true; }
+      }
+      if (remote.campanas && Array.isArray(remote.campanas)) {
+        var mc = mergeById(state.campanas, remote.campanas);
+        if (mc.length !== state.campanas.length) { state.campanas = mc; changed = true; }
+      }
+      // Resto: solo si Firebase es más reciente
+      if (remoteTs > localTs) {
+        if (remote.clientes) state.clientes = mergeById(state.clientes, remote.clientes);
+        if (remote.productos) state.productos = mergeById(state.productos, remote.productos);
+        if (remote.ofertas) state.ofertas = mergeById(state.ofertas, remote.ofertas);
+        if (remote.stock) state.stock = Object.assign({}, state.stock, remote.stock);
+        if (remote.delegado) state.delegado = remote.delegado;
+        if (remote.config) state.config = Object.assign({}, state.config, remote.config);
+        if (remote.acumuladoMensual) state.acumuladoMensual = Object.assign({}, state.acumuladoMensual, remote.acumuladoMensual);
+        localStorage.setItem('franez_ts', remoteTs);
+        changed = true;
+      }
+      if (changed) {
+        localStorage.setItem('clientes',JSON.stringify(state.clientes));
+        localStorage.setItem('productos',JSON.stringify(state.productos));
+        localStorage.setItem('ofertas',JSON.stringify(state.ofertas));
+        localStorage.setItem('historial',JSON.stringify(state.historial));
+        localStorage.setItem('campanas',JSON.stringify(state.campanas));
+        localStorage.setItem('stock',JSON.stringify(state.stock));
+        localStorage.setItem('delegado',state.delegado||'');
+        localStorage.setItem('config',JSON.stringify(state.config));
+        localStorage.setItem('acumuladoMensual',JSON.stringify(state.acumuladoMensual));
+        renderClientesList && renderClientesList();
+        renderHistorial && renderHistorial();
+        renderStats && renderStats();
+        toast('✓ Sincronizado con la nube');
+      }
+    }).catch(function(e){ console.warn('Firebase loadState error:', e); });
+  }
 }
 
 // ██ BLOQUE:LOCAL-STORAGE-FIN ██
@@ -769,7 +775,7 @@ function guardarEnHistorial(){
   var chkPrueba=document.getElementById('chk-prueba');
   if(chkPrueba&&chkPrueba.checked){toast('Pedido de prueba \u2014 no guardado en historial','ok');return;}
   var c=calcPedido();var cliObj=getClienteById(p.clienteId);var oObj=getOfertaById(p.ofertaId);
-  var entry={fecha:nowStr(),ref:genRef(),_ts:new Date().getTime(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
+  var entry={fecha:nowStr(),ref:genRef(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
   if(state.historial.length){var last=state.historial[0];if(last.clienteId===entry.clienteId&&JSON.stringify(last.pedido.lineas)===JSON.stringify(p.lineas)){toast('Pedido id\u00e9ntico al \u00faltimo, no se guard\u00f3','err');return;}}
   state.historial.unshift(entry);
   if(state.historial.length>20) state.historial.pop();
@@ -1045,7 +1051,6 @@ function saveCliente(){
     diasVisita:parseInt(document.getElementById('cli-dias-visita').value)||null,
     ultimaVisita:''
   };
-  obj._ts = new Date().getTime();
   if(editId){
     var existing=state.clientes.find(function(c){return c.id===editId;});
     if(existing){obj.ultimoPedido=existing.ultimoPedido||'';obj.ultimaVisita=existing.ultimaVisita||'';}
