@@ -717,7 +717,8 @@ window.onerror = function(msg, src, line) {
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('stock')">Stock</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('historial')">Historial</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('pedidos')">Pedidos activos</button>
-          <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="subirDatosFirebase()">☁️ SUBIR DATOS A LA NUBE</button>
+         <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="subirDatosFirebase()">☁️ SUBIR DATOS A LA NUBE</button>
+<button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="localStorage.removeItem('franez_ts');location.reload()">⬇️ BAJAR DATOS DE LA NUBE</button>
           <button class="btn" style="background:#450a0a;color:#fca5a5;border:1px solid var(--red)" onclick="borrarTodo()">BORRAR TODO</button>
         </div>
       </div>
