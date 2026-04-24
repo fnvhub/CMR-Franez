@@ -1778,27 +1778,43 @@ function borrarTipo(tipo){
   saveState();renderStats();toast(tipo+' eliminados');
 }
 function subirDatosFirebase(){
-  if (!window._fbDb || !window._fbSet || !window._fbRef) {
+  if (!window._fbDb || !window._fbSet || !window._fbRef || !window._fbGet) {
     toast('⚠️ Firebase no disponible aún, espera unos segundos y vuelve a intentarlo');
     return;
   }
-  if (!confirm('¿Subir todos tus datos locales a la nube? Esto sobrescribirá lo que haya en Firebase.')) return;
-  var now = Date.now();
-  var payload = {
-    clientes: state.clientes,
-    productos: state.productos,
-    ofertas: state.ofertas,
-    historial: state.historial,
-    stock: state.stock,
-    delegado: state.delegado||'',
-    campanas: state.campanas,
-    config: state.config,
-    acumuladoMensual: state.acumuladoMensual||{},
-    _ts: now
-  };
-  window._fbSet(window._fbRef(window._fbDb, 'franez'), payload)
-    .then(function(){ localStorage.setItem('franez_ts', now); toast('☁️ Datos subidos a la nube ✓'); })
-    .catch(function(e){ toast('⚠️ Error al subir: ' + e.message); });
+  if (!confirm('¿Sincronizar tus datos con la nube? Se mezclarán con los de los demás dispositivos.')) return;
+  toast('⏳ Mezclando datos con la nube...');
+  window._fbGet(window._fbRef(window._fbDb, 'franez')).then(function(snapshot) {
+    var now = Date.now();
+    if (snapshot.exists()) {
+      var remote = snapshot.val();
+      if (remote.historial && Array.isArray(remote.historial)) state.historial = mergeById(state.historial, remote.historial);
+      if (remote.campanas && Array.isArray(remote.campanas)) state.campanas = mergeById(state.campanas, remote.campanas);
+      if (remote.clientes && Array.isArray(remote.clientes)) state.clientes = mergeById(state.clientes, remote.clientes);
+      if (remote.productos && Array.isArray(remote.productos)) state.productos = mergeById(state.productos, remote.productos);
+      if (remote.ofertas && Array.isArray(remote.ofertas)) state.ofertas = mergeById(state.ofertas, remote.ofertas);
+      if (remote.stock) state.stock = Object.assign({}, remote.stock, state.stock);
+    }
+    localStorage.setItem('clientes', JSON.stringify(state.clientes));
+    localStorage.setItem('productos', JSON.stringify(state.productos));
+    localStorage.setItem('ofertas', JSON.stringify(state.ofertas));
+    localStorage.setItem('historial', JSON.stringify(state.historial));
+    localStorage.setItem('campanas', JSON.stringify(state.campanas));
+    localStorage.setItem('stock', JSON.stringify(state.stock));
+    localStorage.setItem('franez_ts', now);
+    var payload = {
+      clientes: state.clientes, productos: state.productos, ofertas: state.ofertas,
+      historial: state.historial, stock: state.stock, delegado: state.delegado||'',
+      campanas: state.campanas, config: state.config, acumuladoMensual: state.acumuladoMensual||{}, _ts: now
+    };
+    if (window._fbIgnoreNext) window._fbIgnoreNext();
+    return window._fbSet(window._fbRef(window._fbDb, 'franez'), payload);
+  }).then(function(){
+    renderHistorial && renderHistorial();
+    renderClientesList && renderClientesList();
+    renderStats && renderStats();
+    toast('☁️ Datos mezclados y subidos ✓');
+  }).catch(function(e){ toast('⚠️ Error: ' + e.message); });
 }
 function borrarTodo(){if(!confirm('Esta accion es IRREVERSIBLE. \u00bfEliminar TODOS los datos?')) return;localStorage.clear();loadState();saveState();refreshOfertaSelect();renderCurrentOrder();renderStats();updateStockBadge();toast('Todos los datos eliminados');}
 
