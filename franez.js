@@ -1434,9 +1434,19 @@ function renderHistorial(){
   arr.forEach(function(h,i){
     var lineasStr='';if(h.pedido&&h.pedido.lineas){h.pedido.lineas.slice(0,3).forEach(function(l){lineasStr+=escH(l.nombre.substring(0,20))+'<br>';});if(h.pedido.lineas.length>3) lineasStr+='...';}
     html+='<tr><td>'+escH(h.fecha)+'</td><td style="font-size:11px;color:var(--text2)">'+escH(h.ref)+'</td><td>'+escH(h.clienteNombre)+'</td><td>'+escH(h.ofertaNombre||'-')+'</td><td>'+h.totalUds+'</td><td style="font-weight:600">'+fmNum(h.total)+' &euro;</td><td style="color:'+(h.portes==='PAGADOS'?'#22c55e':'#f97316')+'">'+h.portes+'</td><td style="font-size:11px">'+lineasStr+'</td>'+
-    '<td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',0)">&rarr;P1</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',1)">&rarr;P2</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',2)">&rarr;P3</button></div></td></tr>';
+    '<td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',0)">&rarr;P1</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',1)">&rarr;P2</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',2)">&rarr;P3</button><button class="btn btn-danger btn-sm" onclick="borrarPedidoHistorial(\''+h.id+'\')" title="Borrar del historial">🗑</button></div></td></tr>';
   });
   html+='</tbody></table></div>';document.getElementById('historial-content').innerHTML=html;
+}
+function borrarPedidoHistorial(id){
+  if(!confirm("00bfBorrar este pedido del historial? No se puede deshacer.")) return;
+  state.historial=state.historial.filter(function(h){return h.id!==id;});
+  localStorage.setItem("historial",JSON.stringify(state.historial));
+  if(window._fbDb&&window._fbSet&&window._fbRef){
+    try{if(window._fbIgnoreNext)window._fbIgnoreNext();window._fbSet(window._fbRef(window._fbDb,"franez/historial"),state.historial);}catch(e){}
+  }
+  renderHistorial();
+  toast("Pedido eliminado del historial");
 }
 function cargarDesdeHistorial(hidx,slot){
   var h=state.historial[hidx];if(!h||!h.pedido) return;
@@ -2856,7 +2866,7 @@ window.mergeRemoteState = function(remote) {
   var remoteTs = remote._ts || 0;
   // Si los datos remotos tienen menos de 3 segundos los ignoramos
   // para evitar que el mismo dispositivo procese lo que acaba de subir
-  if (remoteTs > 0 && Date.now() - remoteTs < 3000) return;
+  if (remoteTs > 0 && Date.now() - remoteTs < 500) return;
   var changed = false;
 
   // Historial y campañas: siempre mergear (pueden crecer en cualquier dispositivo)
