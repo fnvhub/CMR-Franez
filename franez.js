@@ -131,6 +131,7 @@ function saveState(){
         _ts: now
       };
       if (window._fbIgnoreNext) window._fbIgnoreNext();
+      if (window._setLastLocalSave) window._setLastLocalSave(now);
       window._fbSet(window._fbRef(window._fbDb, 'franez'), payload);
     } catch(e) { console.warn('Firebase saveState error:', e); }
   }
@@ -2882,7 +2883,6 @@ window.mergeRemoteState = function(remote) {
   var remoteTs = remote._ts || 0;
   // Si los datos remotos tienen menos de 3 segundos los ignoramos
   // para evitar que el mismo dispositivo procese lo que acaba de subir
-  if (remoteTs > 0 && Date.now() - remoteTs < 500) return;
   var changed = false;
 
   // Historial y campañas: siempre mergear (pueden crecer en cualquier dispositivo)

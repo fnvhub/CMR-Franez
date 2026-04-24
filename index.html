@@ -35,15 +35,21 @@
   window._fbSet = set;
   window._fbGet = get;
 
-  // SINCRONIZACIÓN EN TIEMPO REAL
-  // Cuando otro dispositivo guarda datos, esta app los recibe automáticamente
+  // SINCRONIZACIÓN EN TIEMPO REAL — mismo patrón que Control de Visitas
   let _ignoreNextRemote = false;
+  let _lastLocalSave = 0;
   window._fbIgnoreNext = () => { _ignoreNextRemote = true; };
+  window._setLastLocalSave = ts => { _lastLocalSave = ts; };
+
   onValue(ref(db, 'franez'), snapshot => {
     if (_ignoreNextRemote) { _ignoreNextRemote = false; return; }
-    if (!snapshot.exists()) return;
-    if (typeof window.mergeRemoteState === 'function') {
-      window.mergeRemoteState(snapshot.val());
+    const val = snapshot.val();
+    if (!val) return;
+    const remoteTs = val._ts || 0;
+    if (remoteTs > _lastLocalSave + 3000) {
+      if (typeof window.mergeRemoteState === 'function') {
+        window.mergeRemoteState(val);
+      }
     }
   });
 </script>
@@ -63,7 +69,7 @@ window.onerror = function(msg, src, line) {
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <nav id="nav">
-  <span id="nav-title">&#9889; Franez v2.6.4</span>
+  <span id="nav-title">&#9889; Franez v2.6.5</span>
   <button class="nav-btn active" onclick="showPanel('pedidos',this)">Pedidos</button>
   <button class="nav-btn ai-btn" onclick="showPanel('ia',this)">&#10024; Pedido IA</button>
   <button class="nav-btn" onclick="showPanel('visitas',this)">&#128205; Visitas</button>
@@ -794,11 +800,12 @@ window.onerror = function(msg, src, line) {
   <div class="card" style="max-width:700px;margin:0 auto">
     <div class="about-hero">
       <div class="about-title">Franez Pedidos</div>
-      <div class="about-version">v2.6.4</div>
+      <div class="about-version">v2.6.5</div>
       <div class="about-desc">Gestor de pedidos comerciales profesional para delegados de ventas</div>
       <div class="about-author">Desarrollado por <strong>Francisco N&uacute;&ntilde;ez Vegas</strong> &bull; 2025</div>
     </div>
     <div class="card-title">Historial de versiones</div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.5</span><span class="changelog-desc">Sincronización en tiempo real corregida definitivamente. Copiado el patrón exacto de Control de Visitas: los datos solo se aplican si son más de 3 segundos más nuevos que el último guardado local. Fiable con cualquier cobertura.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.4</span><span class="changelog-desc">Sincronización en tiempo real corregida: los datos de otros dispositivos ya se reciben correctamente aunque haya habido poca cobertura. Botón 🗑 en historial para borrar pedidos individuales, con confirmación y sincronización automática.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.3</span><span class="changelog-desc">Sincronización en tiempo real entre dispositivos. Cuando un dispositivo guarda datos, el resto los reciben automáticamente sin recargar. Funciona con o sin cobertura: si hay datos pendientes se sincronizan al recuperar conexión. Toast ☁️ al recibir datos de otro dispositivo.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.1</span><span class="changelog-desc">Fix zonas desplegable en planificador. Contador 50/50 tienda/médico en Ajustes. Exclusión de clientes entre días en planificador semanal. Toggle de prospección por día con zona libre y notas.</span></div>
