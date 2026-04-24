@@ -34,6 +34,18 @@
   window._fbRef = ref;
   window._fbSet = set;
   window._fbGet = get;
+
+  // SINCRONIZACIÓN EN TIEMPO REAL
+  // Cuando otro dispositivo guarda datos, esta app los recibe automáticamente
+  let _ignoreNextRemote = false;
+  window._fbIgnoreNext = () => { _ignoreNextRemote = true; };
+  onValue(ref(db, 'franez'), snapshot => {
+    if (_ignoreNextRemote) { _ignoreNextRemote = false; return; }
+    if (!snapshot.exists()) return;
+    if (typeof window.mergeRemoteState === 'function') {
+      window.mergeRemoteState(snapshot.val());
+    }
+  });
 </script>
   <!-- Firebase SDK -->
 

@@ -130,6 +130,7 @@ function saveState(){
         acumuladoMensual: state.acumuladoMensual||{},
         _ts: now
       };
+      if (window._fbIgnoreNext) window._fbIgnoreNext();
       window._fbSet(window._fbRef(window._fbDb, 'franez'), payload);
     } catch(e) { console.warn('Firebase saveState error:', e); }
   }
@@ -2846,3 +2847,65 @@ function toggleTema(){
 })();
 document.addEventListener('DOMContentLoaded',init);
 // ██ BLOQUE:INIT-FIN ██
+// ██ BLOQUE:SYNC-TIEMPO-REAL-INICIO ██
+// Recibe datos de Firebase cuando otro dispositivo guarda
+// Solo aplica si los datos remotos son más nuevos que los locales
+window.mergeRemoteState = function(remote) {
+  if (!remote) return;
+  var localTs = parseInt(localStorage.getItem('franez_ts') || '0');
+  var remoteTs = remote._ts || 0;
+  // Si los datos remotos tienen menos de 3 segundos los ignoramos
+  // para evitar que el mismo dispositivo procese lo que acaba de subir
+  if (remoteTs > 0 && Date.now() - remoteTs < 3000) return;
+  var changed = false;
+
+  // Historial y campañas: siempre mergear (pueden crecer en cualquier dispositivo)
+  if (remote.historial && Array.isArray(remote.historial)) {
+    var mh = mergeById(state.historial, remote.historial);
+    if (mh.length !== state.historial.length) { state.historial = mh; changed = true; }
+  }
+  if (remote.campanas && Array.isArray(remote.campanas)) {
+    var mc = mergeById(state.campanas, remote.campanas);
+    if (mc.length !== state.campanas.length) { state.campanas = mc; changed = true; }
+  }
+
+  // Resto de datos: solo si Firebase es más nuevo
+  if (remoteTs > localTs) {
+    if (remote.clientes && Array.isArray(remote.clientes)) { state.clientes = mergeById(state.clientes, remote.clientes); changed = true; }
+    if (remote.productos && Array.isArray(remote.productos)) { state.productos = mergeById(state.productos, remote.productos); changed = true; }
+    if (remote.ofertas && Array.isArray(remote.ofertas)) { state.ofertas = mergeById(state.ofertas, remote.ofertas); changed = true; }
+    if (remote.stock) { state.stock = Object.assign({}, state.stock, remote.stock); changed = true; }
+    if (remote.delegado) { state.delegado = remote.delegado; }
+    if (remote.config) { state.config = Object.assign({}, state.config, remote.config); }
+    if (remote.acumuladoMensual) { state.acumuladoMensual = Object.assign({}, state.acumuladoMensual, remote.acumuladoMensual); changed = true; }
+    if (remote.rutaDia) { state.rutaDia = remote.rutaDia; changed = true; }
+    localStorage.setItem('franez_ts', remoteTs);
+  }
+
+  if (!changed) return;
+
+  // Guardar en localStorage
+  localStorage.setItem('clientes', JSON.stringify(state.clientes));
+  localStorage.setItem('productos', JSON.stringify(state.productos));
+  localStorage.setItem('ofertas', JSON.stringify(state.ofertas));
+  localStorage.setItem('historial', JSON.stringify(state.historial));
+  localStorage.setItem('campanas', JSON.stringify(state.campanas));
+  localStorage.setItem('stock', JSON.stringify(state.stock));
+  localStorage.setItem('acumuladoMensual', JSON.stringify(state.acumuladoMensual || {}));
+
+  // Refrescar la pantalla que esté visible en ese momento
+  var panelActivo = document.querySelector('.panel.active');
+  var panelId = panelActivo ? panelActivo.id : '';
+  if (panelId === 'panel-clientes') { renderClientesList && renderClientesList(); }
+  else if (panelId === 'panel-productos') { renderProductosList && renderProductosList(); }
+  else if (panelId === 'panel-ofertas') { renderOfertasList && renderOfertasList(); }
+  else if (panelId === 'panel-stock') { renderStockList && renderStockList(); }
+  else if (panelId === 'panel-historial') { renderHistorial && renderHistorial(); }
+  else if (panelId === 'panel-escalado') { renderEscalado && renderEscalado(); }
+  else if (panelId === 'panel-campanas') { renderCampanas && renderCampanas(); }
+  else if (panelId === 'panel-ajustes') { renderStats && renderStats(); }
+  else if (panelId === 'panel-visitas') { initVisitasPanel && initVisitasPanel(); }
+
+  toast('☁️ Datos actualizados desde otro dispositivo');
+};
+// ██ BLOQUE:SYNC-TIEMPO-REAL-FIN ██
