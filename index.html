@@ -63,7 +63,7 @@ window.onerror = function(msg, src, line) {
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
 <nav id="nav">
-  <span id="nav-title">&#9889; Franez v2.6.3</span>
+  <span id="nav-title">&#9889; Franez v2.6.4</span>
   <button class="nav-btn active" onclick="showPanel('pedidos',this)">Pedidos</button>
   <button class="nav-btn ai-btn" onclick="showPanel('ia',this)">&#10024; Pedido IA</button>
   <button class="nav-btn" onclick="showPanel('visitas',this)">&#128205; Visitas</button>
@@ -794,11 +794,12 @@ window.onerror = function(msg, src, line) {
   <div class="card" style="max-width:700px;margin:0 auto">
     <div class="about-hero">
       <div class="about-title">Franez Pedidos</div>
-      <div class="about-version">v2.6.3</div>
+      <div class="about-version">v2.6.4</div>
       <div class="about-desc">Gestor de pedidos comerciales profesional para delegados de ventas</div>
       <div class="about-author">Desarrollado por <strong>Francisco N&uacute;&ntilde;ez Vegas</strong> &bull; 2025</div>
     </div>
     <div class="card-title">Historial de versiones</div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.4</span><span class="changelog-desc">Sincronización en tiempo real corregida: los datos de otros dispositivos ya se reciben correctamente aunque haya habido poca cobertura. Botón 🗑 en historial para borrar pedidos individuales, con confirmación y sincronización automática.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.3</span><span class="changelog-desc">Sincronización en tiempo real entre dispositivos. Cuando un dispositivo guarda datos, el resto los reciben automáticamente sin recargar. Funciona con o sin cobertura: si hay datos pendientes se sincronizan al recuperar conexión. Toast ☁️ al recibir datos de otro dispositivo.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.1</span><span class="changelog-desc">Fix zonas desplegable en planificador. Contador 50/50 tienda/médico en Ajustes. Exclusión de clientes entre días en planificador semanal. Toggle de prospección por día con zona libre y notas.</span></div>
     <div class="changelog-item"><span class="changelog-version">v2.6.0</span><span class="changelog-desc">Sincronización en la nube con Firebase Realtime Database. Merge inteligente por ID al arrancar: coge el más reciente sin machacar datos. Botón ☁️ en Ajustes para subida manual inicial. Funciona offline (localStorage) y sincroniza al abrir la app.</span></div>
