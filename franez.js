@@ -3265,6 +3265,17 @@ function mostrarPopupImportacion(campos) {
     '<div><label style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase">Contrato vence</label>' +
     '<input id="imp-contrato" type="date" value="' + escH(contratoFin) + '" style="width:100%;background:var(--slate2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:2px;box-sizing:border-box"></div>' +
 
+    '<div style="display:flex;gap:8px">' +
+    '<div style="flex:0 0 80px"><label style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase">Tipo visita</label>' +
+    '<select id="imp-tipo-visita" style="width:100%;background:var(--slate2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:2px;box-sizing:border-box">' +
+    '<option value="">--</option><option value="A">A</option><option value="B">B</option><option value="C">C</option>' +
+    '</select></div>' +
+    '<div style="flex:1"><label style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase">Zona de visita</label>' +
+    '<input id="imp-zona" type="text" placeholder="Ej: Málaga, Jerez..." style="width:100%;background:var(--slate2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:2px;box-sizing:border-box"></div>' +
+    '<div style="flex:0 0 80px"><label style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase">Días visita</label>' +
+    '<input id="imp-dias-visita" type="number" min="1" placeholder="30" style="width:100%;background:var(--slate2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:2px;box-sizing:border-box"></div>' +
+    '</div>' +
+
     '</div>' +
 
     '<div style="display:flex;gap:8px;margin-top:16px">' +
@@ -3295,6 +3306,14 @@ function confirmarImportacion() {
   set('cli-especialidad', document.getElementById('imp-esp').value.trim());
   set('cli-descuento', document.getElementById('imp-dto').value.trim());
   set('cli-contrato', document.getElementById('imp-contrato').value.trim());
+
+  // Campos de visita
+  var tipoV = document.getElementById('imp-tipo-visita');
+  if (tipoV && tipoV.value) set('cli-tipo-visita', tipoV.value);
+  var zonaV = document.getElementById('imp-zona');
+  if (zonaV && zonaV.value.trim()) set('cli-zona-visita', zonaV.value.trim());
+  var diasV = document.getElementById('imp-dias-visita');
+  if (diasV && diasV.value.trim()) set('cli-dias-visita', diasV.value.trim());
 
   cerrarMiniModal();
   toast('Datos importados ✓ — revisa y pulsa Guardar cliente');
