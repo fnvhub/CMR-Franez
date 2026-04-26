@@ -2925,31 +2925,23 @@ function enviarPedidosWhatsApp() {
   if (!pedidosHoy.length) { toast('No hay pedidos de hoy para enviar', 'err'); return; }
 
   // Construir mensaje legible
-  var msg = '📦 PEDIDOS FRANEZ ' + hoy + '
-';
-  msg += '─────────────────
-';
+    var nl = '\n';
+  var msg = 'PEDIDOS FRANEZ ' + hoy + nl;
+  msg += '-----------------' + nl;
   pedidosHoy.forEach(function(h, i) {
-    msg += '
-' + (i+1) + '. ' + (h.clienteNombre||'') + '
-';
+    msg += nl + (i+1) + '. ' + (h.clienteNombre||'') + nl;
     if (h.pedido && h.pedido.lineas) {
       h.pedido.lineas.forEach(function(l) {
-        msg += '   • ' + (l.prodNombre||l.prodId) + ' x' + (l.uds||1);
+        msg += '  * ' + (l.prodNombre||l.prodId) + ' x' + (l.uds||1);
         if (l.dto) msg += ' (-' + l.dto + '%)';
-        msg += '
-';
+        msg += nl;
       });
     }
-    msg += '   Total: ' + fmNum(h.total) + ' € | Portes: ' + (h.portes||'') + '
-';
-    msg += '   Ref: ' + (h.ref||h.id) + '
-';
+    msg += '  Total: ' + fmNum(h.total) + ' EUR | Portes: ' + (h.portes||'') + nl;
+    msg += '  Ref: ' + (h.ref||h.id) + nl;
   });
-  msg += '
-─────────────────
-';
-  msg += '💾 IMPORTAR: franez://import/' + encodeURIComponent(JSON.stringify(pedidosHoy));
+  msg += nl + '-----------------' + nl;
+  msg += 'IMPORTAR: franez://import/' + encodeURIComponent(JSON.stringify(pedidosHoy));
 
   var url = 'https://wa.me/' + WA_NUMERO + '?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
