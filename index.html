@@ -35,7 +35,6 @@
   window._fbSet = set;
   window._fbGet = get;
 
-  // SINCRONIZACIÓN EN TIEMPO REAL — mismo patrón que Control de Visitas
   let _ignoreNextRemote = false;
   let _lastLocalSave = 0;
   window._fbIgnoreNext = () => { _ignoreNextRemote = true; };
@@ -53,9 +52,6 @@
     }
   });
 </script>
-  <!-- Firebase SDK -->
-
-<!-- Tu configuración y sincronización -->
 </head>
 <body>
 <div id="error-log" style="position:fixed;bottom:0;left:0;right:0;background:red;color:white;font-size:12px;padding:8px;z-index:9999;display:none;max-height:200px;overflow:auto"></div>
@@ -67,9 +63,8 @@ window.onerror = function(msg, src, line) {
 };
 </script>
 <!-- ██ BLOQUE:NAV-INICIO ██ -->
-<!-- ██ BLOQUE:NAV-INICIO ██ -->
 <nav id="nav">
-  <span id="nav-title">&#9889; Franez v2.6.6</span>
+  <span id="nav-title">&#9889; Franez v2.6.7</span>
   <button class="nav-btn active" onclick="showPanel('pedidos',this)">Pedidos</button>
   <button class="nav-btn ai-btn" onclick="showPanel('ia',this)">&#10024; Pedido IA</button>
   <button class="nav-btn" onclick="showPanel('visitas',this)" style="display:none">&#128205; Visitas</button>
@@ -104,7 +99,6 @@ window.onerror = function(msg, src, line) {
     <div class="modal-title" style="color:#93c5fd">Novedades para hoy</div>
     <div class="modal-body" id="popup-inicio-body" style="text-align:left;font-size:13px;line-height:1.8"></div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
-
       <button class="modal-btn" style="background:var(--slate2);color:var(--text)" onclick="posponerPopupInicio()">⏸ Aplazar (recordar en 1h)</button>
       <button class="modal-btn" style="background:transparent;color:var(--text3);border:1px solid var(--border)" onclick="cerrarPopupInicioDia()">✕ Cerrar hasta mañana</button>
     </div>
@@ -302,7 +296,7 @@ window.onerror = function(msg, src, line) {
       <button onclick="document.getElementById('ia-apikey-section').style.display=document.getElementById('ia-apikey-section').style.display==='none'?'block':'none'" style="background:transparent;border:none;color:var(--text3);font-size:12px;cursor:pointer;text-decoration:underline">&#9881; Configurar API Key</button>
     </div>
     <div style="margin-top:8px;padding:10px 14px;font-size:12px;color:var(--text3);line-height:1.6;border-top:1px solid var(--border)">
-      La IA detecta productos y cantidades aunque est&eacute;n mal escritos o sean informales, los cruza con tu cat&aacute;logo y te muestra opciones si hay dudas. Requiere API Key de Anthropic (console.anthropic.com).
+      La IA detecta productos y cantidades aunque est&eacute;n mal escritos o sean informales, los cruza con tu cat&aacute;logo y te muestra opciones si hay dudas.
     </div>
   </div>
 </div>
@@ -310,7 +304,6 @@ window.onerror = function(msg, src, line) {
 
 <!-- ██ BLOQUE:VISITAS-INICIO ██ -->
 <div class="panel" id="panel-visitas">
-  <!-- HERO -->
   <div style="background:linear-gradient(135deg,var(--cobalt-dark) 0%,var(--cobalt) 50%,var(--cobalt-light) 100%);border-radius:20px;padding:28px 24px;margin-bottom:20px;position:relative;overflow:hidden">
     <div style="position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none"></div>
     <div style="position:absolute;bottom:-20px;left:-20px;width:100px;height:100px;background:radial-gradient(circle,rgba(255,255,255,.05) 0%,transparent 70%);pointer-events:none"></div>
@@ -322,8 +315,6 @@ window.onerror = function(msg, src, line) {
       </div>
     </div>
   </div>
-
-  <!-- TABS -->
   <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--slate);border-radius:14px;padding:6px;border:1px solid var(--border);flex-wrap:wrap" id="visitas-tabs-container">
     <button class="visita-tab-btn active" onclick="switchVisitaTab('semana',this)" style="flex:1;min-width:120px;padding:12px 16px;border-radius:10px;font-size:14px;font-weight:600;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--cobalt);color:#fff">
       <span>&#128197;</span><span>Planificador</span>
@@ -335,8 +326,6 @@ window.onerror = function(msg, src, line) {
       <span>&#128203;</span><span>Briefing</span>
     </button>
   </div>
-
-  <!-- TAB SEMANA -->
   <div id="visita-tab-semana">
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px">
@@ -362,8 +351,6 @@ window.onerror = function(msg, src, line) {
       <div id="semana-dias-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px"></div>
     </div>
   </div>
-
-  <!-- TAB ZONA -->
   <div id="visita-tab-zona" style="display:none">
     <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
@@ -393,10 +380,7 @@ window.onerror = function(msg, src, line) {
       <div id="clientes-zona-content"></div>
     </div>
   </div>
-
-  <!-- TAB BRIEFING -->
   <div id="visita-tab-briefing" style="display:none">
-    <!-- AGENDA 14 DÍAS -->
     <div id="agenda-14-container" style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:16px">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div style="width:42px;height:42px;background:var(--cobalt);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">&#128197;</div>
@@ -461,6 +445,11 @@ window.onerror = function(msg, src, line) {
 <div class="panel" id="panel-clientes">
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
     <div>
+      <!-- ██ BLOQUE:IMPORTAR-CONTRATO-INICIO ██ -->
+      <button onclick="importarContratoPDF()" style="width:100%;margin-bottom:12px;background:transparent;border:2px dashed var(--cobalt);color:var(--cobalt-light);border-radius:10px;padding:12px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        📄 Importar desde contrato PDF
+      </button>
+      <!-- ██ BLOQUE:IMPORTAR-CONTRATO-FIN ██ -->
       <div class="card">
         <div class="card-title" id="client-form-title">Nuevo Cliente</div>
         <div class="form-row"><div class="form-group"><label>Nombre completo *</label><input type="text" id="cli-nombre"></div><div class="form-group"><label>Nombre comercial</label><input type="text" id="cli-comercial"></div></div>
@@ -472,7 +461,6 @@ window.onerror = function(msg, src, line) {
         <div class="form-row">
           <div class="form-group" style="flex:0 0 160px"><label>Descuento% (0-99)</label><input type="number" id="cli-descuento" min="0" max="99"></div>
           <div class="form-group"><label>Contrato vencimiento</label><input type="date" id="cli-contrato"></div>
-          <!-- NUEVO: selector Compra -->
           <div class="form-group" style="flex:0 0 120px"><label>Compra</label>
             <select id="cli-compra">
               <option value="NO">No</option>
@@ -619,7 +607,6 @@ window.onerror = function(msg, src, line) {
     <div>
       <div class="card">
         <div class="card-title">Seguimiento por Cliente</div>
-        <!-- NUEVO: filtros escalado -->
         <div class="cli-filtros" style="margin-bottom:10px">
           <button class="cli-filtro-btn active" onclick="setFiltroEscalado('todos',this)">Todos</button>
           <button class="cli-filtro-btn" onclick="setFiltroEscalado('compran',this)">Compran</button>
@@ -714,7 +701,7 @@ window.onerror = function(msg, src, line) {
           <input type="number" id="cfg-margen-dto" class="settings-input" min="1" max="30" value="3" style="width:80px;text-align:center">
         </div>
         <div class="settings-row">
-          <div class="settings-label"><div class="settings-label-title">Días aviso contrato</div><div class="settings-label-sub">Días de antelación para avisar de contratos que van a vencer. Aparece en el popup de inicio del día.</div></div>
+          <div class="settings-label"><div class="settings-label-title">Días aviso contrato</div><div class="settings-label-sub">Días de antelación para avisar de contratos que van a vencer.</div></div>
           <input type="number" id="cfg-dias-contrato" class="settings-input" min="1" max="90" value="21" style="width:80px;text-align:center">
         </div>
         <button class="btn btn-primary btn-sm" onclick="saveConfig()" style="margin-top:8px">Guardar configuraci&oacute;n</button>
@@ -741,8 +728,8 @@ window.onerror = function(msg, src, line) {
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('stock')">Stock</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('historial')">Historial</button>
           <button class="btn btn-danger btn-sm" onclick="borrarTipo('pedidos')">Pedidos activos</button>
-         <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="subirDatosFirebase()">☁️ SUBIR DATOS A LA NUBE</button>
-<button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="localStorage.removeItem('franez_ts');location.reload()">⬇️ BAJAR DATOS DE LA NUBE</button>
+          <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="subirDatosFirebase()">☁️ SUBIR DATOS A LA NUBE</button>
+          <button class="btn" style="background:#1e3a5f;color:#93c5fd;border:1px solid #3b82f6" onclick="localStorage.removeItem('franez_ts');location.reload()">⬇️ BAJAR DATOS DE LA NUBE</button>
           <button class="btn" style="background:#450a0a;color:#fca5a5;border:1px solid var(--red)" onclick="borrarTodo()">BORRAR TODO</button>
         </div>
       </div>
@@ -758,43 +745,21 @@ window.onerror = function(msg, src, line) {
       <div class="camp-hero-title">&#128260; Migración de Datos</div>
       <div class="camp-hero-sub">Cómo mover tus datos entre dispositivos sin perder nada</div>
     </div>
-
     <div class="card">
       <div class="card-title">&#128190; Exportar datos (PC / Tablet → Móvil)</div>
       <div style="font-size:14px;color:var(--text2);line-height:1.9;margin-bottom:16px">
         <div style="display:flex;gap:10px;margin-bottom:8px"><span style="background:var(--cobalt);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">1</span><span>Ve a <strong style="color:var(--text)">Ajustes → Backup → Exportar JSON</strong> en el dispositivo de origen.</span></div>
-        <div style="display:flex;gap:10px;margin-bottom:8px"><span style="background:var(--cobalt);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</span><span>El archivo se llama <strong style="color:var(--text)">backup_pedidos_DD-M-YYYY.json</strong>. Guárdalo en la nube (Drive, WhatsApp, email) o pásalo al otro dispositivo.</span></div>
+        <div style="display:flex;gap:10px;margin-bottom:8px"><span style="background:var(--cobalt);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">2</span><span>El archivo se llama <strong style="color:var(--text)">backup_pedidos_DD-M-YYYY.json</strong>.</span></div>
         <div style="display:flex;gap:10px;margin-bottom:8px"><span style="background:var(--cobalt);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">3</span><span>En el dispositivo destino, abre Franez y ve a <strong style="color:var(--text)">Ajustes → Backup → Importar JSON</strong>.</span></div>
         <div style="display:flex;gap:10px"><span style="background:var(--cobalt);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">4</span><span>Selecciona el archivo JSON. <strong style="color:#f87171">Atención: esto sobreescribe todos los datos del dispositivo destino.</strong></span></div>
       </div>
       <button class="btn btn-primary" onclick="showPanel('ajustes',document.querySelector('[onclick*=ajustes]'));setTimeout(function(){exportarBackup();},100)">&#8595; Exportar JSON ahora</button>
     </div>
-
-    <div class="card" style="border-color:#ea580c">
-      <div class="card-title" style="color:#fb923c">&#9888; Qué sobreescribe y qué no</div>
-      <div style="font-size:13px;line-height:1.8;color:var(--text2)">
-        <div><strong style="color:#f87171">Sobreescribe completamente:</strong> clientes, productos, ofertas, historial, stock, campañas, configuración.</div>
-        <div style="margin-top:6px"><strong style="color:#6ee7b7">No toca:</strong> pedidos activos en curso (los 3 slots) — estos son locales del dispositivo y no se exportan.</div>
-        <div style="margin-top:6px"><strong style="color:#fcd34d">Recomendación:</strong> exporta siempre <em>después</em> de guardar el último pedido en historial, no antes.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">&#128247; Fusionar backups (varios dispositivos)</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px">
-        Si has estado trabajando en varios dispositivos a la vez y cada uno tiene pedidos distintos, los backups se pueden fusionar. Descarga los JSON de cada dispositivo y fusiónalos con ayuda de Claude — sube los archivos y pide: <em style="color:var(--text)">"Fusiónanos estos backups de Franez"</em>.
-      </div>
-      <div style="background:#064e3b;border:1px solid #047857;border-radius:8px;padding:12px 14px;font-size:13px;color:#6ee7b7">
-        ✓ La fusión respeta todos los pedidos de todos los dispositivos, elimina duplicados y ordena por fecha.
-      </div>
-    </div>
-
     <div class="card">
       <div class="card-title">&#128241; Instalar Franez en el móvil</div>
       <div style="font-size:13px;color:var(--text2);line-height:1.7">
-        <div style="margin-bottom:8px">Franez es una PWA — funciona como app instalada sin tienda de apps:</div>
-        <div style="display:flex;gap:10px;margin-bottom:6px"><span style="color:var(--cobalt-light);font-weight:700;min-width:70px">Android:</span><span>Abre el HTML en Chrome → menú (⋮) → <strong style="color:var(--text)">Añadir a pantalla de inicio</strong></span></div>
-        <div style="display:flex;gap:10px"><span style="color:var(--cobalt-light);font-weight:700;min-width:70px">iPhone:</span><span>Abre el HTML en Safari → botón compartir → <strong style="color:var(--text)">Añadir a pantalla de inicio</strong></span></div>
+        <div style="display:flex;gap:10px;margin-bottom:6px"><span style="color:var(--cobalt-light);font-weight:700;min-width:70px">Android:</span><span>Chrome → menú (⋮) → <strong style="color:var(--text)">Añadir a pantalla de inicio</strong></span></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--cobalt-light);font-weight:700;min-width:70px">iPhone:</span><span>Safari → botón compartir → <strong style="color:var(--text)">Añadir a pantalla de inicio</strong></span></div>
       </div>
     </div>
   </div>
@@ -806,41 +771,16 @@ window.onerror = function(msg, src, line) {
   <div class="card" style="max-width:700px;margin:0 auto">
     <div class="about-hero">
       <div class="about-title">Franez Pedidos</div>
-      <div class="about-version">v2.6.6</div>
+      <div class="about-version">v2.6.7</div>
       <div class="about-desc">Gestor de pedidos comerciales profesional para delegados de ventas</div>
       <div class="about-author">Desarrollado por <strong>Francisco N&uacute;&ntilde;ez Vegas</strong> &bull; 2025</div>
     </div>
     <div class="card-title">Historial de versiones</div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.6</span><span class="changelog-desc">Fix botón borrar historial. Pestaña Visitas oculta. Popup inicio del día muestra contratos que vencen próximamente (configurable en Ajustes, por defecto 21 días). Campaña ErgyUp 2026 añadida automáticamente con caducidad 30/06/2026. Envío y recepción de pedidos por WhatsApp.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.5</span><span class="changelog-desc">Sincronización en tiempo real corregida definitivamente. Copiado el patrón exacto de Control de Visitas: los datos solo se aplican si son más de 3 segundos más nuevos que el último guardado local. Fiable con cualquier cobertura.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.6</span><span class="changelog-desc">Fix botón borrar historial. Pestaña Visitas oculta. Popup inicio del día muestra contratos que vencen próximamente (configurable en Ajustes, por defecto 21 días). Campaña ErgyUp 2026 añadida automáticamente con caducidad 30/06/2026. Envío y recepción de pedidos por WhatsApp.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.5</span><span class="changelog-desc">Envío de pedidos del día por WhatsApp con un toque. Botón verde en Historial para enviar al número de empresa. Botón de importar en el tablet: pega el mensaje y los pedidos entran solos sin duplicados.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.4</span><span class="changelog-desc">Sincronización en tiempo real corregida: los datos de otros dispositivos ya se reciben correctamente aunque haya habido poca cobertura. Botón 🗑 en historial para borrar pedidos individuales, con confirmación y sincronización automática.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.3</span><span class="changelog-desc">Sincronización en tiempo real entre dispositivos. Cuando un dispositivo guarda datos, el resto los reciben automáticamente sin recargar. Funciona con o sin cobertura: si hay datos pendientes se sincronizan al recuperar conexión. Toast ☁️ al recibir datos de otro dispositivo.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.1</span><span class="changelog-desc">Fix zonas desplegable en planificador. Contador 50/50 tienda/médico en Ajustes. Exclusión de clientes entre días en planificador semanal. Toggle de prospección por día con zona libre y notas.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.6.0</span><span class="changelog-desc">Sincronización en la nube con Firebase Realtime Database. Merge inteligente por ID al arrancar: coge el más reciente sin machacar datos. Botón ☁️ en Ajustes para subida manual inicial. Funciona offline (localStorage) y sincroniza al abrir la app.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.5.1</span><span class="changelog-desc">Contratos caducados visibles en Agenda 14 días durante 30 días tras vencer (badge ⚠️ CADUCADO). Combobox de búsqueda en "Añadir a la ruta" (igual que en pedidos). Campañas en Briefing de cliente muestran badge "✓ Le compensa" si al cliente le sale rentable. Nota próximo pedido visible en Briefing si existe.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.5.0</span><span class="changelog-desc">Agenda 14 días en el panel Visitas (pestaña Briefing): muestra entregas fraccionadas pendientes, contratos próximos a vencer y campañas que terminan en los próximos 14 días. Las entregas se ocultan automáticamente 10 días después de su fecha. Las campañas muestran candidatos (clientes a quienes compensa la oferta) desplegables.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.4.3</span><span class="changelog-desc">Entregas fraccionadas con fechas: botón 📅 por línea para asignar fecha de 1er y 2º envío. El 2º se propone automáticamente 3 meses después, editable. Fechas visibles en panel y en documento imprimible (sección Entregas Fraccionadas).</span></div>
-    <div class="changelog-item"><span class="changelog-version">v2.3.1</span><span class="changelog-desc">Selector de tema en el nav: Oscuro 🌙, Claro ☀️ y Sol 🌞 (alto contraste para exteriores). La preferencia de tema se guarda automáticamente en localStorage. Versión en formato profesional x.x.x.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.7.0</span><span class="changelog-desc">Subl&iacute;neas de nota en pedido: bot&oacute;n + en cada l&iacute;nea para a&ntilde;adir notas aclaratorias (sabores, variantes, matices). Aparecen en PDF indentadas. Eliminables individualmente. Upsert inteligente en importaci&oacute;n de productos CSV (actualiza si existe, crea si no). Campo orden recuperado en actualizaci&oacute;n.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.6.0</span><span class="changelog-desc">Unidades de envase visibles en l&iacute;nea de pedido. Subtotal por l&iacute;nea destacado. Aviso producto duplicado en pedido. Pedido de prueba (no se guarda en historial). Entregas fraccionadas autom&aacute;ticas (12+ uds en 2 env&iacute;os, Philus 48+). Observaciones PDF con fuente mayor. L&iacute;neas IA pendientes visibles al cargar pedido. Aviso campa&ntilde;a inteligente: solo avisa si el dto mejora y las uds alcanzan el tramo.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.5.0</span><span class="changelog-desc">Avisos de campañas al añadir línea (producto en campaña activa/precampaña). Aviso de acumulados por cliente al seleccionar cliente. Campañas: nuevo campo producto catálogo, descuentos separados precampaña/campaña, caducidad automática 10 días post-campaña. PDF compartir: título correcto “Pedido de [Cliente]”.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.4.5</span><span class="changelog-desc">Barra inferior fija en pedido (l&iacute;neas, total, portes). Revisi&oacute;n onBlur cantidad en l&iacute;nea. Import CSV clientes con upsert inteligente (actualiza si existe, crea si no). Normalizaci&oacute;n campo Compra en CSV (S* &rarr; SI, resto NO). Selector Compra S&iacute;/No en formulario cliente. Filtros Todos/Compran/No compran en Escalado.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.4.3</span><span class="changelog-desc">Filtros Todos/Compran/No compran en lista de clientes. Exportar backup con Web Share API. Accept del input de importar mejorado para Android.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.4.2</span><span class="changelog-desc">Carga autom&aacute;tica de 25 campa&ntilde;as Nutergia 2026. Fix caracteres especiales en JS.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.3.3</span><span class="changelog-desc">B&uacute;squeda de clientes ampliada: nombre, comercial, tel&eacute;fono, m&oacute;vil, direcci&oacute;n y localidad.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.3.2</span><span class="changelog-desc">Correcci&oacute;n bug pedido IA, API Key oculta por defecto, panel IA simplificado.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.3.1</span><span class="changelog-desc">Correcci&oacute;n decimales en importaci&oacute;n CSV, ordenaci&oacute;n clientes por campo COMPRA.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.3.0</span><span class="changelog-desc">Pedido por IA (Claude), usabilidad teclado, panel Acerca de.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.2.1</span><span class="changelog-desc">Control de stock con badge, escalado comercial con seguimiento por cliente.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.2.0</span><span class="changelog-desc">Historial antiduplicado, generaci&oacute;n PDF nativa, Web Share API.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.1.0</span><span class="changelog-desc">Sistema de ofertas, c&aacute;lculo autom&aacute;tico de portes, alertas de contrato.</span></div>
-    <div class="changelog-item"><span class="changelog-version">v1.0.0</span><span class="changelog-desc">Versi&oacute;n inicial: gesti&oacute;n de clientes, productos, 3 pedidos simult&aacute;neos, PWA instalable.</span></div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.7</span><span class="changelog-desc">Importación automática desde contrato PDF Nutergia. Botón 📄 en sección Clientes: sube el PDF firmado y relleno, extrae los datos, valida el NIF/CIF, clasifica teléfono/móvil y verifica el IBAN. Popup de revisión antes de guardar.</span></div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.6</span><span class="changelog-desc">Fix botón borrar historial. Pestaña Visitas oculta. Popup inicio del día muestra contratos que vencen próximamente. Envío y recepción de pedidos por WhatsApp.</span></div>
+    <div class="changelog-item"><span class="changelog-version">v2.6.5</span><span class="changelog-desc">Sincronización en tiempo real corregida definitivamente.</span></div>
     <div class="about-legal">
-      &copy; 2025 Francisco N&uacute;&ntilde;ez Vegas. Todos los derechos reservados.<br>
-      Este software es propiedad intelectual de su autor. Queda prohibida su reproducci&oacute;n total o parcial,<br>
-      distribuci&oacute;n o uso sin autorizaci&oacute;n expresa y por escrito del titular.
+      &copy; 2025 Francisco N&uacute;&ntilde;ez Vegas. Todos los derechos reservados.
     </div>
   </div>
 </div>
