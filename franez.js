@@ -6,7 +6,7 @@ var state = {
     {clienteId:'',ofertaId:'',lineas:[],portes:'auto',dtoActual:0,notas:''}
   ],
   historial:[],stock:{},delegado:'',campanas:[],
-  config:{umbralUnidades:12,umbralPedidos:2,margenMinDto:3},
+  config:{umbralUnidades:12,umbralPedidos:2,margenMinDto:3,diasContrato:21},
   rutaDia:{fecha:'',clientes:[]},
   acumuladoMensual:{}
 };
@@ -168,7 +168,7 @@ function loadState(){
       return (hoy-fin)<cutoff;
     });
   })();
-  var cfgDef={umbralUnidades:12,umbralPedidos:2,margenMinDto:3};
+  var cfgDef={umbralUnidades:12,umbralPedidos:2,margenMinDto:3,diasContrato:21};
   state.config=Object.assign({},cfgDef,tryParse('config',{}));
   state.acumuladoMensual=tryParse('acumuladoMensual',{});
   // Merge con Firebase DESPUÉS de cargar localStorage (evita que tryParse machaque el merge)
@@ -1435,13 +1435,13 @@ function renderHistorial(){
   arr.forEach(function(h,i){
     var lineasStr='';if(h.pedido&&h.pedido.lineas){h.pedido.lineas.slice(0,3).forEach(function(l){lineasStr+=escH(l.nombre.substring(0,20))+'<br>';});if(h.pedido.lineas.length>3) lineasStr+='...';}
     html+='<tr><td>'+escH(h.fecha)+'</td><td style="font-size:11px;color:var(--text2)">'+escH(h.ref)+'</td><td>'+escH(h.clienteNombre)+'</td><td>'+escH(h.ofertaNombre||'-')+'</td><td>'+h.totalUds+'</td><td style="font-weight:600">'+fmNum(h.total)+' &euro;</td><td style="color:'+(h.portes==='PAGADOS'?'#22c55e':'#f97316')+'">'+h.portes+'</td><td style="font-size:11px">'+lineasStr+'</td>'+
-    '<td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',0)">&rarr;P1</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',1)">&rarr;P2</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',2)">&rarr;P3</button><button class="btn btn-danger btn-sm" onclick="borrarPedidoHistorial(\''+h.id+'\')" title="Borrar del historial">🗑</button></div></td></tr>';
+    '<td><div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',0)">&rarr;P1</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',1)">&rarr;P2</button><button class="btn btn-ghost btn-sm" onclick="cargarDesdeHistorial('+i+',2)">&rarr;P3</button><button class="btn btn-danger btn-sm" onclick="borrarPedidoHistorial(\'+'+(h.id||h.ref||i)+'+\')" title="Borrar del historial">🗑</button></div></td></tr>';
   });
   html+='</tbody></table></div>';document.getElementById('historial-content').innerHTML=html;
 }
 function borrarPedidoHistorial(id){
-  if(!confirm("00bfBorrar este pedido del historial? No se puede deshacer.")) return;
-  state.historial=state.historial.filter(function(h){return h.id!==id;});
+  if(!confirm('¿Borrar este pedido del historial? No se puede deshacer.')) return;
+  state.historial=state.historial.filter(function(h){return (h.id||h.ref)!==(id);});
   localStorage.setItem("historial",JSON.stringify(state.historial));
   if(window._fbDb&&window._fbSet&&window._fbRef){
     try{if(window._fbIgnoreNext)window._fbIgnoreNext();window._fbSet(window._fbRef(window._fbDb,"franez/historial"),state.historial);}catch(e){}
@@ -1755,7 +1755,7 @@ function renderContador5050(){
     '</div>'+
     '<div style="font-size:11px;color:var(--text3);margin-top:5px;text-align:center">'+total+' pedidos categorizados este mes</div>';
 }
-function saveConfig(){state.config={umbralUnidades:parseInt(document.getElementById('cfg-umbral-uds').value)||12,umbralPedidos:parseInt(document.getElementById('cfg-umbral-peds').value)||2,margenMinDto:parseInt(document.getElementById('cfg-margen-dto').value)||3};saveState();toast('Configuraci\u00f3n guardada \u2713');}
+function saveConfig(){state.config={umbralUnidades:parseInt(document.getElementById('cfg-umbral-uds').value)||12,umbralPedidos:parseInt(document.getElementById('cfg-umbral-peds').value)||2,margenMinDto:parseInt(document.getElementById('cfg-margen-dto').value)||3,diasContrato:parseInt(document.getElementById('cfg-dias-contrato').value)||21};saveState();toast('Configuración guardada ✓');}
 function saveDelegado(){state.delegado=document.getElementById('ajuste-delegado').value.trim();saveState();toast('Delegado guardado \u2713');}
 function exportarBackup(){
   var data={clientes:state.clientes,productos:state.productos,ofertas:state.ofertas,pedidos:state.pedidos,historial:state.historial,stock:state.stock,delegado:state.delegado,campanas:state.campanas,config:state.config};
@@ -2804,9 +2804,17 @@ function initPopupInicio(){
   // Campañas activas/precampaña
   var campsHoy=state.campanas.filter(function(c){var e=getCampanaEstado(c);return e==='activa'||e==='preoferta';});
   if(campsHoy.length) novedades.push('🎯 '+campsHoy.length+' campaña'+(campsHoy.length>1?'s':'')+' activa'+(campsHoy.length>1?'s':'')+' o en precampaña');
+  // Contratos próximos a vencer
+  var diasCfg=state.config.diasContrato||21;
+  var contratos=state.clientes.filter(function(c){if(!c.contrato) return false;var d=diasParaVencer(c.contrato);return d>=0&&d<=diasCfg;}).sort(function(a,b){return diasParaVencer(a.contrato)-diasParaVencer(b.contrato);});
+  contratos.forEach(function(c){var d=diasParaVencer(c.contrato);novedades.push('📋 Contrato de <strong>'+escH(c.nombreCompleto)+'</strong> vence en <strong>'+d+' día'+(d!==1?'s':'')+'</strong>');});
   if(!novedades.length) return; // sin novedades, no mostrar
   document.getElementById('popup-inicio-body').innerHTML=novedades.map(function(n){return '<div style="padding:4px 0;border-bottom:1px solid var(--border)">'+n+'</div>';}).join('');
   document.getElementById('popup-inicio').classList.remove('hidden');
+}
+function getContratosProximos(){
+  var dias=state.config.diasContrato||21;
+  return state.clientes.filter(function(c){if(!c.contrato) return false;var d=diasParaVencer(c.contrato);return d>=0&&d<=dias;}).sort(function(a,b){return diasParaVencer(a.contrato)-diasParaVencer(b.contrato);});
 }
 function cerrarPopupInicio(){
   document.getElementById('popup-inicio').classList.add('hidden');
@@ -2846,6 +2854,37 @@ function init(){
       state.campanas=pdfCamps;saveState();
     }
   })();
+  // OFERTA ERGYUP — caducidad 30/06/2026, se borra sola si ya pasó
+  (function(){
+    var hoy=new Date();
+    var caducidad=new Date('2026-07-01');
+    // Limpiar ofertas caducadas
+    state.ofertas=state.ofertas.filter(function(o){
+      if(!o.fechaCaducidad) return true;
+      return new Date(o.fechaCaducidad)>=hoy;
+    });
+    // Añadir ErgyUp si no existe y no ha caducado
+    if(hoy<caducidad){
+      var yaExiste=state.ofertas.some(function(o){return o.id==='ergyup2026';});
+      if(!yaExiste){
+        state.ofertas.push({
+          id:'ergyup2026',
+          nombre:'ERGYUP 2026 (hasta 30/06)',
+          fechaCaducidad:'2026-06-30',
+          tramos:[
+            {uds:6,precioUd:16.63,dto:38},
+            {uds:12,precioUd:16.09,dto:40},
+            {uds:24,precioUd:15.02,dto:44},
+            {uds:48,precioUd:13.95,dto:48},
+            {uds:72,precioUd:12.87,dto:52}
+          ],
+          pvp:29.50,
+          notas:'2 envíos posibles. No acumulable. Sin devoluciones. Pago 60 días.'
+        });
+        saveState();
+      }
+    }
+  })();
   initComboboxes();refreshOfertaSelect();renderCurrentOrder();updateStockBadge();
   initBannerConfirmaciones();
   setTimeout(initPopupInicio,800);
@@ -2874,6 +2913,82 @@ function toggleTema(){
 })();
 document.addEventListener('DOMContentLoaded',init);
 // ██ BLOQUE:INIT-FIN ██
+
+// ██ BLOQUE:WHATSAPP-SYNC-INICIO ██
+var WA_NUMERO = '34673839799';
+
+function enviarPedidosWhatsApp() {
+  var hoy = todayStr();
+  var pedidosHoy = state.historial.filter(function(h) {
+    return h.fecha && h.fecha.indexOf(hoy) === 0;
+  });
+  if (!pedidosHoy.length) { toast('No hay pedidos de hoy para enviar', 'err'); return; }
+
+  // Construir mensaje legible
+  var msg = '📦 PEDIDOS FRANEZ ' + hoy + '
+';
+  msg += '─────────────────
+';
+  pedidosHoy.forEach(function(h, i) {
+    msg += '
+' + (i+1) + '. ' + (h.clienteNombre||'') + '
+';
+    if (h.pedido && h.pedido.lineas) {
+      h.pedido.lineas.forEach(function(l) {
+        msg += '   • ' + (l.prodNombre||l.prodId) + ' x' + (l.uds||1);
+        if (l.dto) msg += ' (-' + l.dto + '%)';
+        msg += '
+';
+      });
+    }
+    msg += '   Total: ' + fmNum(h.total) + ' € | Portes: ' + (h.portes||'') + '
+';
+    msg += '   Ref: ' + (h.ref||h.id) + '
+';
+  });
+  msg += '
+─────────────────
+';
+  msg += '💾 IMPORTAR: franez://import/' + encodeURIComponent(JSON.stringify(pedidosHoy));
+
+  var url = 'https://wa.me/' + WA_NUMERO + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+function importarDesdeMensaje() {
+  var txt = prompt('Pega aquí el mensaje de WhatsApp completo:');
+  if (!txt) return;
+  var marca = 'franez://import/';
+  var idx = txt.indexOf(marca);
+  if (idx === -1) { toast('No se encontró datos en el mensaje', 'err'); return; }
+  try {
+    var json = decodeURIComponent(txt.substring(idx + marca.length));
+    var pedidos = JSON.parse(json);
+    if (!Array.isArray(pedidos)) throw new Error('Formato incorrecto');
+    var nuevos = 0;
+    pedidos.forEach(function(h) {
+      if (!h.id) return;
+      var existe = state.historial.some(function(x) { return x.id === h.id; });
+      if (!existe) { state.historial.unshift(h); nuevos++; }
+    });
+    if (nuevos > 0) {
+      state.historial.sort(function(a,b){ return (b.fecha||'').localeCompare(a.fecha||''); });
+      if (state.historial.length > 20) state.historial = state.historial.slice(0, 20);
+      localStorage.setItem('historial', JSON.stringify(state.historial));
+      if (window._fbIgnoreNext) window._fbIgnoreNext();
+      if (window._setLastLocalSave) window._setLastLocalSave(Date.now());
+      if (window._fbDb && window._fbSet && window._fbRef) {
+        try { window._fbSet(window._fbRef(window._fbDb, 'franez/historial'), state.historial); } catch(e) {}
+      }
+      renderHistorial && renderHistorial();
+      toast('✓ ' + nuevos + ' pedido(s) importado(s)');
+    } else {
+      toast('Ya tenías todos esos pedidos');
+    }
+  } catch(e) { toast('Error al importar: ' + e.message, 'err'); }
+}
+// ██ BLOQUE:WHATSAPP-SYNC-FIN ██
+
 // ██ BLOQUE:SYNC-TIEMPO-REAL-INICIO ██
 // Recibe datos de Firebase cuando otro dispositivo guarda
 // Solo aplica si los datos remotos son más nuevos que los locales
