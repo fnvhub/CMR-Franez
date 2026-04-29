@@ -777,7 +777,7 @@ function guardarEnHistorial(){
   var chkPrueba=document.getElementById('chk-prueba');
   if(chkPrueba&&chkPrueba.checked){toast('Pedido de prueba \u2014 no guardado en historial','ok');return;}
   var c=calcPedido();var cliObj=getClienteById(p.clienteId);var oObj=getOfertaById(p.ofertaId);
-  var entry={fecha:nowStr(),ref:genRef(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
+  var entry={id:genRef(),fecha:nowStr(),ref:genRef(),clienteId:p.clienteId,clienteNombre:cliObj?cliObj.nombreCompleto:'',ofertaNombre:oObj?oObj.nombre:'',totalUds:c.totalUds,total:c.total,dto:p.dtoActual,portes:c.portesReal,notas:p.notas,pedido:JSON.parse(JSON.stringify(p))};
   if(state.historial.length){var last=state.historial[0];if(last.clienteId===entry.clienteId&&JSON.stringify(last.pedido.lineas)===JSON.stringify(p.lineas)){toast('Pedido id\u00e9ntico al \u00faltimo, no se guard\u00f3','err');return;}}
   state.historial.unshift(entry);
   if(state.historial.length>20) state.historial.pop();
@@ -867,6 +867,19 @@ function formatFName(nd){
 // ██ BLOQUE:COMPARTIR-PDF-FIN ██
 
 // ██ BLOQUE:PDF-NATIVO-INICIO ██
+function colorDelegado(nombre) {
+  var palabras=(nombre||'').trim().split(/\s+/);
+  var l1=palabras[0]?palabras[0][0].toUpperCase():'A';
+  var l2=palabras[1]?palabras[1][0].toUpperCase():l1;
+  var n1=Math.max(0,l1.charCodeAt(0)-65);
+  var n2=Math.max(0,l2.charCodeAt(0)-65);
+  var h=(n1*14+n2*7)%360,s=0.65,lv=0.38;
+  var c=(1-Math.abs(2*lv-1))*s,x=c*(1-Math.abs((h/60)%2-1)),m=lv-c/2,r,g,b;
+  if(h<60){r=c;g=x;b=0;}else if(h<120){r=x;g=c;b=0;}
+  else if(h<180){r=0;g=c;b=x;}else if(h<240){r=0;g=x;b=c;}
+  else if(h<300){r=x;g=0;b=c;}else{r=c;g=0;b=x;}
+  return {r:+(r+m).toFixed(3),g:+(g+m).toFixed(3),b:+(b+m).toFixed(3)};
+}
 function buildPDF(nd){
   var p=nd.pedido,c=nd.calculo,cli=nd.cliente,o=nd.oferta;
   var cs=[],offsets=[],pdfParts=[];
@@ -874,13 +887,14 @@ function buildPDF(nd){
   function latinEncode(s){return String(s||'').replace(/\u00e1/g,'\xe1').replace(/\u00e9/g,'\xe9').replace(/\u00ed/g,'\xed').replace(/\u00f3/g,'\xf3').replace(/\u00fa/g,'\xfa').replace(/\u00c1/g,'\xc1').replace(/\u00c9/g,'\xc9').replace(/\u00cd/g,'\xcd').replace(/\u00d3/g,'\xd3').replace(/\u00da/g,'\xda').replace(/\u00f1/g,'\xf1').replace(/\u00d1/g,'\xd1').replace(/\u00fc/g,'\xfc').replace(/\u00dc/g,'\xdc').replace(/[^\x00-\xff]/g,'?');}
   function pe(s){return e(latinEncode(s||''));}
   var y=800,lh=16,ml=50,mr=545;
+  var _col=colorDelegado(nd.delegado);var _cr=_col.r,_cg=_col.g,_cb=_col.b;
   function text(x,yy,str,size,bold){cs.push('BT /'+(bold?'F2':'F1')+' '+size+' Tf '+x+' '+yy+' Td ('+pe(str)+') Tj ET');}
   function line(x1,y1,x2,y2){cs.push(x1+' '+y1+' m '+x2+' '+y2+' l S');}
   function fillRect(x,yy,w,h,r,g,b){cs.push(r+' '+g+' '+b+' rg '+x+' '+yy+' '+w+' '+h+' re f 0 0 0 rg');}
   text(200,y,'NOTA DE PEDIDO',18,true);y-=22;
   text(180,y,nd.fecha+' | '+nd.ref,9,false);y-=20;
   cs.push('0.8 w');line(ml,y,mr,y);y-=14;
-  fillRect(ml,y,mr-ml,16,0.22,0.39,0.92);y-=12;
+  fillRect(ml,y,mr-ml,16,_cr,_cg,_cb);y-=12;
   cs.push('1 1 1 rg');text(ml+4,y+2,'CLIENTE',9,true);cs.push('0 0 0 rg');y-=4;
   function field(lbl,val){if(!val) return;text(ml,y,lbl+':',9,true);text(ml+100,y,String(val),9,false);y-=lh;}
   field('Nombre',cli.nombreCompleto);field('N.Comercial',cli.nombreComercial);field('NIF/CIF',cli.nif);
@@ -892,7 +906,7 @@ function buildPDF(nd){
   if(o.nombre){text(ml,y,'Oferta: '+o.nombre+(o.descuento?' ('+o.descuento+'%)':''),10,true);y-=lh;}
   else if(p.dtoActual){text(ml,y,'Descuento aplicado: '+p.dtoActual+'%',10,true);y-=lh;}
   y-=4;
-  fillRect(ml,y,mr-ml,16,0.22,0.39,0.92);y-=12;
+  fillRect(ml,y,mr-ml,16,_cr,_cg,_cb);y-=12;
   cs.push('1 1 1 rg');text(ml+4,y+2,'PRODUCTOS',9,true);cs.push('0 0 0 rg');y-=6;
   var cols=[ml,ml+200,ml+250,ml+300,ml+360,ml+420];
   fillRect(ml,y-2,mr-ml,14,0.88,0.90,0.95);y-=10;
@@ -2959,8 +2973,9 @@ function importarDesdeMensaje() {
     if (!Array.isArray(pedidos)) throw new Error('Formato incorrecto');
     var nuevos = 0;
     pedidos.forEach(function(h) {
-      if (!h.id) return;
-      var existe = state.historial.some(function(x) { return x.id === h.id; });
+      var hKey = h.id || h.ref;
+      if (!hKey) return;
+      var existe = state.historial.some(function(x) { return (x.id || x.ref) === hKey; });
       if (!existe) { state.historial.unshift(h); nuevos++; }
     });
     if (nuevos > 0) {
