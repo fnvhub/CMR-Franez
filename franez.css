@@ -275,3 +275,5 @@ textarea{resize:vertical;min-height:80px}
 #panel-visitas .semaforo-gris{background:var(--slate2);border-left-color:var(--border);color:var(--text2);}
 @media(max-width:900px){#panel-visitas .briefing-grid{grid-template-columns:1fr!important;}}
 @media(max-width:640px){#visitas-tabs-container{flex-direction:column;}#visitas-tabs-container .visita-tab-btn{min-width:100%!important;}#semana-dias-grid{grid-template-columns:1fr!important;}}
+#ver-footer{text-align:center;font-size:11px;color:var(--text3);margin-top:14px;padding-bottom:6px;cursor:pointer;user-select:none}
+#ver-footer:hover{color:var(--accent)}
