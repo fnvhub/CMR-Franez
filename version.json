@@ -1,5 +1,28 @@
 {
-  "version": "1.1",
+  "version": "2.6.9",
   "fecha": "2026-05-03",
-  "cambios": ["Sistema de versión implementado"]
+  "cambios": ["Sistema de versión implementado. Pie en Ajustes muestra versión actual y enlaza a Acerca de. Historial cargado dinámicamente desde version.json"],
+  "historial": [
+    {
+      "version": "2.6.8",
+      "fecha": "2026-05-03",
+      "cambios": ["Sistema de versión implementado. Pie en Ajustes muestra versión actual y enlaza a Acerca de. Historial cargado dinámicamente desde version.json"]
+    },
+    {
+      "version": "2.6.7",
+      "fecha": "",
+      "cambios": ["Importación automática desde contrato PDF Nutergia. Botón en sección Clientes: sube el PDF firmado y relleno, extrae los datos, valida el NIF/CIF, clasifica teléfono/móvil y verifica el IBAN. Popup de revisión antes de guardar."]
+    },
+    {
+      "version": "2.6.6",
+      "fecha": "",
+      "cambios": ["Fix botón borrar historial. Pestaña Visitas oculta. Popup inicio del día muestra contratos que vencen próximamente. Envío y recepción de pedidos por WhatsApp."]
+    },
+    {
+      "version": "2.6.5",
+      "fecha": "",
+      "cambios": ["Sincronización en tiempo real corregida definitivamente."]
+    }
+  ]
+}
 }
