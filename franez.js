@@ -15,6 +15,10 @@ var cbCliente,cbProducto,cbIACliente;
 var iaResultado=null;
 var filtroClientes='todos';
 var filtroEscalado='todos';
+let APP_VERSION={version:'—',fecha:'—',cambios:[]};
+fetch('/CMR-Franez/version.json?'+Date.now()).then(r=>r.json()).then(v=>{APP_VERSION=v;const el=document.getElementById('ver-num');if(el)el.textContent='v'+v.version;}).catch(()=>{const el=document.getElementById('ver-num');if(el)el.textContent='v?';});
+function openVersion(){const v=APP_VERSION;const lista=v.cambios&&v.cambios.length?v.cambios.map(c=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2)">· ${c}</div>`).join(''):'<div style="color:var(--text3);font-size:13px">Sin detalles</div>';document.getElementById('mcontent').innerHTML=`<div style="font-size:16px;font-weight:600;margin-bottom:4px">Control de Visitas · Franez</div><div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:2px">v${v.version}</div><div style="font-size:11px;color:var(--text3);margin-bottom:16px">${v.fecha}</div><div style="font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Cambios en esta versión</div>${lista}<div class="btns" style="margin-top:16px"><div class="btn full" onclick="closeModal()">Cerrar</div></div>`;openModal();}
+
 
 // ██ BLOQUE:ESTADO-GLOBAL-FIN ██
 
