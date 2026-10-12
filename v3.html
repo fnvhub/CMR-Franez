@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#2563eb">
-<title>Franez v3.0.7</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="./manifest.json">
+<title>Franez v3.0.8</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -30,9 +34,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     }
 
     /* V3: versión */
-    d.title='Franez v3.0.7';
+    d.title='Franez v3.0.8';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.7';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.8';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -79,7 +83,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     style.textContent=
       '#panel-avisos-v3{overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding-bottom:80px}'+
       '#panel-avisos-v3 .card{min-height:fit-content}'+
-      '.aviso-v3{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--slate1,#111827)}'+
+      '.aviso-v3{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--card);color:var(--text);box-shadow:var(--shadow)}'+
       '.aviso-v3.urgente{border-left:4px solid #ef4444}'+
       '.aviso-v3.proximo{border-left:4px solid #f59e0b}'+
       '.aviso-v3.normal{border-left:4px solid #22c55e}'+
@@ -155,23 +159,22 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.7';
+    if(aboutVersion)aboutVersion.textContent='v3.0.8';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.7</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.8</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
     w.renderAvisosV3=renderAvisos;
     actualizarAvisos();
-    instalarBotonBackup();
   }
 
 
-  /* V3.0.7 — BACKUP AUTOMÁTICO SIMPLE
+  /* V3.0.8 — BACKUP AUTOMÁTICO SIMPLE
      Sin permisos ni carpetas especiales: el JSON se descarga en la carpeta
      de descargas configurada por el navegador. El usuario conserva el control:
      puede desactivar el automático en Ajustes y siempre puede usar el botón Backup.
@@ -188,7 +191,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     var st=w.state||{};
     return {
       backupVersion:'1',
-      appVersion:'3.0.7',
+      appVersion:'3.0.8',
       fechaBackup:new Date().toISOString(),
       clientes:Array.isArray(st.clientes)?st.clientes:[],
       productos:Array.isArray(st.productos)?st.productos:[],
@@ -284,13 +287,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
   function instalarAjusteBackup(){
     var w=frame.contentWindow,d=frame.contentDocument;
     if(!w||!d)return;
-    if(d.getElementById('ajuste-backup-auto-v307'))return;
+    if(d.getElementById('ajuste-backup-auto-v308'))return;
 
     var panel=d.getElementById('panel-ajustes')||d.querySelector('[id*="ajustes"]');
     if(!panel)return;
 
     var card=d.createElement('div');
-    card.id='ajuste-backup-auto-v307';
+    card.id='ajuste-backup-auto-v308';
     card.className='card';
     card.style.marginTop='14px';
     card.innerHTML=
@@ -298,11 +301,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
       '<div style="font-size:13px;color:var(--text3);line-height:1.5;margin:6px 0 12px">Descarga un JSON completo una vez al día en la carpeta de Descargas del navegador. Tú tienes la última palabra y puedes desconectarlo cuando quieras.</div>'+
       '<label style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;cursor:pointer">'+
         '<span><strong>Backup automático diario</strong><br><span style="font-size:12px;color:var(--text3)">Activo por defecto. El botón 🛡️ Backup sigue disponible aunque lo desactives.</span></span>'+
-        '<input id="backup-auto-switch-v307" type="checkbox" style="width:22px;height:22px;flex:0 0 auto">'+
+        '<input id="backup-auto-switch-v308" type="checkbox" style="width:22px;height:22px;flex:0 0 auto">'+
       '</label>';
     panel.appendChild(card);
 
-    var sw=d.getElementById('backup-auto-switch-v307');
+    var sw=d.getElementById('backup-auto-switch-v308');
     sw.checked=backupAutomaticoActivo();
     sw.onchange=function(){
       localStorage.setItem(BACKUP_AUTO_KEY,sw.checked?'on':'off');
@@ -310,31 +313,107 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     };
   }
 
-  function instalarBotonBackup(){
-    var w=frame.contentWindow,d=frame.contentDocument;
-    if(!w||!d)return;
-    if(d.getElementById('nav-backup-v307'))return;
-    var nav=d.getElementById('nav');
-    if(!nav)return;
-    var b=d.createElement('button');
-    b.id='nav-backup-v307';
-    b.className='nav-btn';
-    b.innerHTML='🛡️ Backup';
-    b.title='Descargar copia de seguridad';
-    b.onclick=function(){forzarBackupManual();};
-    var avisos=d.getElementById('nav-avisos-v3');
-    if(avisos&&avisos.nextSibling)nav.insertBefore(b,avisos.nextSibling);
-    else if(avisos)nav.appendChild(b);
-    else nav.appendChild(b);
-    instalarAjusteBackup();
+
+  var MENSAJE_COMPARTIR_KEY='franez_mensaje_compartir_pedido_v308';
+  var MENSAJE_COMPARTIR_DEFAULT='Te envío este resumen únicamente para que puedas comprobar que el pedido que he pasado es correcto. Si ves cualquier error o algo que no coincida, por favor, házmelo saber. Muchas gracias.';
+
+  function clientePedidoActual(){
+    var w=frame.contentWindow;
+    if(!w||!w.state||!Array.isArray(w.state.pedidos))return null;
+    var p=w.state.pedidos[w.currentOrder||0];
+    return p&&w.getClienteById?w.getClienteById(p.clienteId):null;
+  }
+  function mensajeCompartirActual(){return localStorage.getItem(MENSAJE_COMPARTIR_KEY)||MENSAJE_COMPARTIR_DEFAULT;}
+  function normalizarTelefonoV308(v){
+    var s=String(v||'').replace(/\D/g,'');
+    if(!s)return '';
+    if(s.indexOf('0034')===0)s=s.substring(4);
+    if(s.indexOf('34')===0&&s.length===11)return s;
+    if(s.length===9)return '34'+s;
+    return s;
+  }
+  function construirMensajePedidoV308(){
+    var w=frame.contentWindow,p=w.state&&w.state.pedidos?w.state.pedidos[w.currentOrder||0]:null;
+    if(!p||!Array.isArray(p.lineas)||!p.lineas.length)return '';
+    var lineas=p.lineas.map(function(l){
+      var pvp=typeof w.fmNum==='function'?w.fmNum(l.pvp):Number(l.pvp||0).toFixed(2).replace('.',',');
+      return '• '+String(l.nombre||'Producto')+' — '+(parseInt(l.uds)||0)+' uds. — PVP '+pvp+' €';
+    }).join('\n');
+    return mensajeCompartirActual()+'\n\n'+lineas+'\n\nLos precios indicados son PVP.';
+  }
+  function construirTextoEntregasV308(p){
+    if(!p||!p.entregasOverride||!Array.isArray(p.lineas))return '';
+    var out=[];
+    p.lineas.forEach(function(l,idx){
+      var nombre=String(l.nombre||'').toUpperCase(),uds=parseInt(l.uds)||0;
+      var aplica=(nombre.indexOf('PHILUS')>-1&&uds>=48)||(nombre.indexOf('PHILUS')===-1&&uds>=12);
+      if(!aplica)return;
+      var ov=p.entregasOverride['linea_'+idx];if(!ov)return;
+      var e1=ov.e1||Math.floor(uds/2),e2=uds-e1;
+      out.push('• '+(l.nombre||'Producto')+': '+e1+' uds. — Envío 1: '+(ov.f1||'sin fecha')+' | '+e2+' uds. — Envío 2: '+(ov.f2||'sin fecha'));
+    });
+    return out.length?'ENTREGAS FRACCIONADAS\n'+out.join('\n'):'';
+  }
+  function copiarPedidoWhatsAppV308(){
+    var texto=construirMensajePedidoV308();if(!texto)return;
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(texto).then(function(){var w=frame.contentWindow;if(w.toast)w.toast('📋 Pedido copiado. Pégalo en WhatsApp Business.','ok');}).catch(function(){fallbackCopiarV308(texto);});
+    }else fallbackCopiarV308(texto);
+  }
+  function fallbackCopiarV308(texto){
+    var d=frame.contentDocument,ta=d.createElement('textarea');ta.value=texto;ta.style.position='fixed';ta.style.opacity='0';d.body.appendChild(ta);ta.select();try{d.execCommand('copy');}catch(e){}ta.remove();var w=frame.contentWindow;if(w.toast)w.toast('📋 Pedido copiado. Pégalo en WhatsApp Business.','ok');
+  }
+  function abrirWhatsAppPedidoV308(){
+    var w=frame.contentWindow,c=clientePedidoActual(),texto=construirMensajePedidoV308();if(!texto)return;
+    var telefono=normalizarTelefonoV308(c&&(c.movil||c.telefono));
+    if(!telefono){copiarPedidoWhatsAppV308();if(w.toast)w.toast('⚠️ Este cliente no tiene móvil/teléfono. He copiado el pedido para pegarlo manualmente.','error');return;}
+    var url='https://wa.me/'+telefono+'?text='+encodeURIComponent(texto);
+    window.open(url,'_blank');
+  }
+  function instalarBotonWhatsApp(){
+    var w=frame.contentWindow,d=frame.contentDocument;if(!w||!d||d.getElementById('btn-wa-pedido-v308'))return;
+    var pdf=d.querySelector('button[onclick*="compartirNota"]');if(!pdf)return;
+    var b=d.createElement('button');b.id='btn-wa-pedido-v308';b.className='btn btn-lg';b.style.cssText='background:#25d366;color:#fff;border:none';b.innerHTML='📱 Compartir pedido por WhatsApp';b.title='Prepara el pedido para el cliente. Tú tendrás que pulsar Enviar.';b.onclick=abrirWhatsAppPedidoV308;pdf.parentNode.insertBefore(b,pdf.nextSibling);
+    var c=d.createElement('button');c.id='btn-copy-wa-pedido-v308';c.className='btn btn-ghost btn-sm';c.style.width='100%';c.textContent='📋 Copiar pedido para WhatsApp';c.title='Plan B: copia el mensaje completo al portapapeles.';c.onclick=copiarPedidoWhatsAppV308;b.parentNode.insertBefore(c,b.nextSibling);
+  }
+  function instalarMensajeCompartir(){
+    var w=frame.contentWindow,d=frame.contentDocument;if(!w||!d||d.getElementById('ajuste-mensaje-compartir-v308'))return;
+    var panel=d.getElementById('panel-ajustes')||d.querySelector('[id*="ajustes"]');if(!panel)return;
+    var card=d.createElement('div');card.id='ajuste-mensaje-compartir-v308';card.className='card';card.style.marginTop='14px';
+    card.innerHTML='<div class="card-title">✉️ Mensaje al compartir pedidos</div><div style="font-size:13px;color:var(--text3);line-height:1.5;margin-bottom:10px">Este texto se añadirá al compartir el pedido por email o WhatsApp. Puedes modificarlo cuando quieras.</div><textarea id="mensaje-compartir-v308" style="min-height:120px"></textarea><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-primary btn-sm" id="guardar-mensaje-compartir-v308">Guardar mensaje</button><button class="btn btn-ghost btn-sm" id="restaurar-mensaje-compartir-v308">Restaurar texto original</button></div>';
+    panel.appendChild(card);var ta=d.getElementById('mensaje-compartir-v308');ta.value=mensajeCompartirActual();
+    d.getElementById('guardar-mensaje-compartir-v308').onclick=function(){localStorage.setItem(MENSAJE_COMPARTIR_KEY,ta.value.trim()||MENSAJE_COMPARTIR_DEFAULT);if(w.toast)w.toast('✉️ Mensaje guardado ✓','ok');};
+    d.getElementById('restaurar-mensaje-compartir-v308').onclick=function(){ta.value=MENSAJE_COMPARTIR_DEFAULT;localStorage.setItem(MENSAJE_COMPARTIR_KEY,MENSAJE_COMPARTIR_DEFAULT);if(w.toast)w.toast('✉️ Mensaje restaurado ✓','ok');};
+  }
+  function instalarContratoEditable(){
+    var w=frame.contentWindow,d=frame.contentDocument;if(!w||!d)return;var bc=d.getElementById('badge-contrato');if(!bc||bc.dataset.v308)return;bc.dataset.v308='1';bc.style.cursor='pointer';bc.title='Pulsar para modificar la fecha de caducidad del contrato';
+    bc.onclick=function(){
+      var c=clientePedidoActual();if(!c){if(w.toast)w.toast('Selecciona primero un cliente.','err');return;}var actual=c.contrato||'';
+      var html='<div style="padding:16px"><div style="font-size:14px;font-weight:700;margin-bottom:12px">📅 Fecha de caducidad del contrato</div><div style="font-size:12px;color:var(--text3);margin-bottom:8px">Cliente: '+(w.escH?w.escH(c.nombreComercial||c.nombreCompleto||'Cliente'):'Cliente')+'</div><input id="v308-contrato-date" type="date" value="'+String(actual).replace(/[^0-9-]/g,'')+'" style="width:100%;margin-bottom:14px"><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-ghost" onclick="cerrarMiniModal()">Cancelar</button><button class="btn btn-primary" id="v308-guardar-contrato">Guardar</button></div></div>';
+      if(typeof w.mostrarMiniModal==='function'){
+        w.mostrarMiniModal(html);setTimeout(function(){var save=d.getElementById('v308-guardar-contrato');if(save)save.onclick=function(){var inp=d.getElementById('v308-contrato-date');c.contrato=inp&&inp.value?inp.value:'';if(typeof w.saveState==='function')w.saveState();if(typeof w.updateClientPreview==='function')w.updateClientPreview();if(typeof w.renderSummary==='function')w.renderSummary();if(typeof w.checkAlerts==='function')w.checkAlerts();if(typeof w.renderAvisosV3==='function')w.renderAvisosV3();if(typeof w.cerrarMiniModal==='function')w.cerrarMiniModal();if(w.toast)w.toast('📅 Fecha de contrato guardada ✓','ok');};},50);
+      }else{var nuevo=prompt('Nueva fecha de caducidad (AAAA-MM-DD):',actual);if(nuevo!==null){c.contrato=nuevo;w.saveState();w.updateClientPreview();if(w.renderAvisosV3)w.renderAvisosV3();}}
+    };
+  }
+  function sobrescribirCompartirNota(){
+    var w=frame.contentWindow;if(!w||typeof w.verificarPedidoAntesDePDF!=='function'||typeof w.buildPDF!=='function'||typeof w.pdfToBlob!=='function')return;if(w.compartirNota&&w.compartirNota.__v308)return;
+    var fn=function(){w.verificarPedidoAntesDePDF(function(){if(typeof w.guardarEnHistorial==='function')w.guardarEnHistorial();var nd=w.buildNdFromCurrentOrder();if(!nd.pedido.lineas||!nd.pedido.lineas.length){w.toast('Sin líneas en el pedido','err');return;}var p=nd.pedido,originalNotas=p.notas||'',entTexto=construirTextoEntregasV308(p);try{if(entTexto)p.notas=originalNotas?(originalNotas+'\n\n'+entTexto):entTexto;var pdfStr=w.buildPDF(nd),blob=w.pdfToBlob(pdfStr),fname=(typeof w.formatFName==='function'?w.formatFName(nd):'pedido.pdf');var file=new File([blob],fname,{type:'application/pdf'}),cli=nd.cliente||{},nombre=cli.nombreCompleto||cli.nombreComercial||'cliente',shareText=mensajeCompartirActual();if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Pedido de '+nombre,text:shareText}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();if(w.toast)w.toast('PDF descargado ✓','ok');}}catch(e){w.toast('Error generando PDF: '+e.message,'err');}finally{p.notas=originalNotas;}});};fn.__v308=true;w.compartirNota=fn;
   }
 
   function arrancar(){
     setTimeout(function(){
       instalarV3();
-      instalarBotonBackup();
+      instalarAjusteBackup();
+      instalarMensajeCompartir();
+      instalarBotonWhatsApp();
+      instalarContratoEditable();
+      sobrescribirCompartirNota();
       setTimeout(function(){
         instalarAjusteBackup();
+        instalarMensajeCompartir();
+        instalarBotonWhatsApp();
+        instalarContratoEditable();
+        sobrescribirCompartirNota();
         ejecutarBackupAutomatico();
       },900);
     },50);

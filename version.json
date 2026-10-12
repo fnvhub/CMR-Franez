@@ -1,13 +1,31 @@
 {
-  "version": "3.0.7",
+  "version": "3.0.8",
   "fecha": "2026-10-12",
   "cambios": [
-    "Backup automático diario descargado en la carpeta de Descargas, sin permisos ni selección de carpetas.",
-    "Se añade en Ajustes un control para desconectar el backup automático. El botón manual 🛡️ Backup permanece disponible como plan B.",
-    "La decisión final sobre el backup automático queda siempre en manos del usuario.",
-    "Se mantiene la pestaña Avisos y la eliminación del popup de inicio."
+    "Se prepara Franez como PWA real: manifest, apertura en modo independiente y pantalla completa sin la interfaz de Chrome.",
+    "Se elimina el botón 🛡️ Backup de la barra principal. El backup manual permanece en Ajustes y el automático diario sigue bajo control del usuario.",
+    "Se corrige Avisos para que las tarjetas respeten correctamente los temas diurno/nocturno.",
+    "El botón de Contrato permite modificar y guardar directamente la fecha de caducidad del cliente.",
+    "Compartir Nota (PDF) incluye también las fechas y cantidades de las entregas fraccionadas.",
+    "Se añade en Ajustes un mensaje editable para compartir pedidos por email o WhatsApp.",
+    "Se añade Compartir pedido por WhatsApp: usa el móvil/teléfono del cliente, prepara producto + unidades + PVP y deja siempre el envío final en manos del usuario.",
+    "Se mantiene un botón Copiar pedido para WhatsApp como plan B si el enlace directo no funciona."
   ],
   "historial": [
+    {
+      "version": "3.0.8",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Se prepara Franez como PWA real: manifest, apertura en modo independiente y pantalla completa sin la interfaz de Chrome.",
+        "Se elimina el botón 🛡️ Backup de la barra principal. El backup manual permanece en Ajustes y el automático diario sigue bajo control del usuario.",
+        "Se corrige Avisos para que las tarjetas respeten correctamente los temas diurno/nocturno.",
+        "El botón de Contrato permite modificar y guardar directamente la fecha de caducidad del cliente.",
+        "Compartir Nota (PDF) incluye también las fechas y cantidades de las entregas fraccionadas.",
+        "Se añade en Ajustes un mensaje editable para compartir pedidos por email o WhatsApp.",
+        "Se añade Compartir pedido por WhatsApp: usa el móvil/teléfono del cliente, prepara producto + unidades + PVP y deja siempre el envío final en manos del usuario.",
+        "Se mantiene un botón Copiar pedido para WhatsApp como plan B si el enlace directo no funciona."
+      ]
+    },
     {
       "version": "3.0.7",
       "fecha": "2026-10-12",
