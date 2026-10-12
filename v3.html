@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#2563eb">
-<title>Franez v3.0.2</title>
+<title>Franez v3.0.3</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -30,9 +30,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     }
 
     /* V3: versión */
-    d.title='Franez v3.0.2';
+    d.title='Franez v3.0.3';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.2';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.3';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -105,7 +105,16 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     var avisoRenderStarted=false;
 
     function datosClientesListos(){
-      return !!(w.state && Array.isArray(w.state.clientes));
+      if(!(w.state && Array.isArray(w.state.clientes))) return false;
+      /* state.clientes nace vacío y se rellena después de cargar el CRM.
+         No confundimos ese estado inicial con "carga terminada". */
+      if(w.state.clientes.length>0) return true;
+      if(typeof w.getContratosProximos==='function'){
+        try{
+          return w.getContratosProximos().length>0;
+        }catch(e){}
+      }
+      return false;
     }
 
     function renderAvisos(){
@@ -120,7 +129,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
           var intentos=0;
           avisoRenderTimer=setInterval(function(){
             intentos++;
-            if(datosClientesListos() || intentos>=40){
+            if(datosClientesListos() || intentos>=60){
               clearInterval(avisoRenderTimer);
               avisoRenderTimer=null;
               avisoRenderStarted=false;
@@ -181,13 +190,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.2';
+    if(aboutVersion)aboutVersion.textContent='v3.0.3';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.2</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.3</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
@@ -197,16 +206,14 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
   function arrancar(){
     setTimeout(instalarV3,150);
-    setTimeout(function(){
-      if(frame.contentWindow && typeof frame.contentWindow.renderAvisosV3==='function'){
-        frame.contentWindow.renderAvisosV3();
-      }
-    },1200);
-    setTimeout(function(){
-      if(frame.contentWindow && typeof frame.contentWindow.renderAvisosV3==='function'){
-        frame.contentWindow.renderAvisosV3();
-      }
-    },3000);
+    /* Reintentos para capturar la carga asíncrona de clientes/pedidos. */
+    [1200,2500,5000,8000].forEach(function(ms){
+      setTimeout(function(){
+        if(frame.contentWindow && typeof frame.contentWindow.renderAvisosV3==='function'){
+          frame.contentWindow.renderAvisosV3();
+        }
+      },ms);
+    });
   }
 
   frame.addEventListener('load',arrancar);
