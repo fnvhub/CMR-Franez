@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="./manifest.json">
-<title>Franez v3.0.8</title>
+<title>Franez v3.0.9</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -34,9 +34,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     }
 
     /* V3: versión */
-    d.title='Franez v3.0.8';
+    d.title='Franez v3.0.9';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.8';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.9';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -159,13 +159,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.8';
+    if(aboutVersion)aboutVersion.textContent='v3.0.9';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.8</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.9</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
@@ -191,7 +191,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     var st=w.state||{};
     return {
       backupVersion:'1',
-      appVersion:'3.0.8',
+      appVersion:'3.0.9',
       fechaBackup:new Date().toISOString(),
       clientes:Array.isArray(st.clientes)?st.clientes:[],
       productos:Array.isArray(st.productos)?st.productos:[],
@@ -397,7 +397,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
   }
   function sobrescribirCompartirNota(){
     var w=frame.contentWindow;if(!w||typeof w.verificarPedidoAntesDePDF!=='function'||typeof w.buildPDF!=='function'||typeof w.pdfToBlob!=='function')return;if(w.compartirNota&&w.compartirNota.__v308)return;
-    var fn=function(){w.verificarPedidoAntesDePDF(function(){if(typeof w.guardarEnHistorial==='function')w.guardarEnHistorial();var nd=w.buildNdFromCurrentOrder();if(!nd.pedido.lineas||!nd.pedido.lineas.length){w.toast('Sin líneas en el pedido','err');return;}var p=nd.pedido,originalNotas=p.notas||'',entTexto=construirTextoEntregasV308(p);try{if(entTexto)p.notas=originalNotas?(originalNotas+'\n\n'+entTexto):entTexto;var pdfStr=w.buildPDF(nd),blob=w.pdfToBlob(pdfStr),fname=(typeof w.formatFName==='function'?w.formatFName(nd):'pedido.pdf');var file=new File([blob],fname,{type:'application/pdf'}),cli=nd.cliente||{},nombre=cli.nombreCompleto||cli.nombreComercial||'cliente',shareText=mensajeCompartirActual();if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Pedido de '+nombre,text:shareText}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();if(w.toast)w.toast('PDF descargado ✓','ok');}}catch(e){w.toast('Error generando PDF: '+e.message,'err');}finally{p.notas=originalNotas;}});};fn.__v308=true;w.compartirNota=fn;
+    var fn=function(){w.verificarPedidoAntesDePDF(function(){if(typeof w.guardarEnHistorial==='function')w.guardarEnHistorial();var nd=w.buildNdFromCurrentOrder();if(!nd.pedido.lineas||!nd.pedido.lineas.length){w.toast('Sin líneas en el pedido','err');return;}var p=nd.pedido,originalNotas=p.notas||'',entTexto=construirTextoEntregasV308(p);try{if(entTexto)p.notas=originalNotas?(originalNotas+'\n\n'+entTexto):entTexto;var pdfStr=w.buildPDF(nd),blob=w.pdfToBlob(pdfStr),fname=(typeof w.formatFName==='function'?w.formatFName(nd):'pedido.pdf');var file=new File([blob],fname,{type:'application/pdf'}),cli=nd.cliente||{},nombre=cli.nombreCompleto||cli.nombreComercial||'cliente';if(navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:'Pedido de '+nombre}).catch(function(){});}else{var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;a.click();if(w.toast)w.toast('PDF descargado ✓','ok');}}catch(e){w.toast('Error generando PDF: '+e.message,'err');}finally{p.notas=originalNotas;}});};fn.__v308=true;w.compartirNota=fn;
   }
 
   function arrancar(){
