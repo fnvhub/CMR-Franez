@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#2563eb">
-<title>Franez v3.0.6</title>
+<title>Franez v3.0.7</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -30,9 +30,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     }
 
     /* V3: versión */
-    d.title='Franez v3.0.6';
+    d.title='Franez v3.0.7';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.6';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.7';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -155,13 +155,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.6';
+    if(aboutVersion)aboutVersion.textContent='v3.0.7';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.6</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.7</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
@@ -171,105 +171,16 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
   }
 
 
-  /* V3.0.6 — COPIA DE SEGURIDAD LOCAL OBLIGATORIA
-     La PWA pide una sola vez acceso a Documents/Json y crea BACKUPS_FRANEZ.
-     Después, al abrir Franez cada día, guarda automáticamente un JSON completo.
+  /* V3.0.7 — BACKUP AUTOMÁTICO SIMPLE
+     Sin permisos ni carpetas especiales: el JSON se descarga en la carpeta
+     de descargas configurada por el navegador. El usuario conserva el control:
+     puede desactivar el automático en Ajustes y siempre puede usar el botón Backup.
   */
-  var BACKUP_DB='franez-backup-db';
-  var BACKUP_STORE='handles';
-  var BACKUP_KEY='backupDir';
-  var BACKUP_FOLDER='BACKUPS_FRANEZ';
-  var backupOverlay=null;
+  var BACKUP_AUTO_KEY='franez_backup_automatico';
+  var BACKUP_DAY_KEY='franez_backup_ultimo_dia';
 
-  function abrirBackupDB(){
-    return new Promise(function(resolve,reject){
-      if(!window.indexedDB){reject(new Error('IndexedDB no está disponible'));return;}
-      var req=indexedDB.open(BACKUP_DB,1);
-      req.onupgradeneeded=function(){
-        var db=req.result;
-        if(!db.objectStoreNames.contains(BACKUP_STORE)) db.createObjectStore(BACKUP_STORE);
-      };
-      req.onsuccess=function(){resolve(req.result);};
-      req.onerror=function(){reject(req.error||new Error('No se pudo abrir el almacenamiento de configuración'));};
-    });
-  }
-
-  async function guardarHandleBackup(handle){
-    var db=await abrirBackupDB();
-    return new Promise(function(resolve,reject){
-      var tx=db.transaction(BACKUP_STORE,'readwrite');
-      tx.objectStore(BACKUP_STORE).put(handle,BACKUP_KEY);
-      tx.oncomplete=function(){db.close();resolve();};
-      tx.onerror=function(){db.close();reject(tx.error);};
-    });
-  }
-
-  async function leerHandleBackup(){
-    var db=await abrirBackupDB();
-    return new Promise(function(resolve,reject){
-      var tx=db.transaction(BACKUP_STORE,'readonly');
-      var req=tx.objectStore(BACKUP_STORE).get(BACKUP_KEY);
-      req.onsuccess=function(){db.close();resolve(req.result||null);};
-      req.onerror=function(){db.close();reject(req.error);};
-    });
-  }
-
-  async function comprobarPermisoBackup(handle){
-    if(!handle)return false;
-    try{
-      if(typeof handle.queryPermission==='function'){
-        var estado=await handle.queryPermission({mode:'readwrite'});
-        if(estado==='granted')return true;
-        return false;
-      }
-      return true;
-    }catch(e){return false;}
-  }
-
-  function crearOverlayBackup(){
-    if(backupOverlay)return backupOverlay;
-    var ov=document.createElement('div');
-    ov.id='franez-backup-overlay';
-    ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.96);z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box;font-family:Arial,sans-serif;color:#fff';
-    ov.innerHTML=
-      '<div style="width:min(520px,100%);background:#111827;border:1px solid #334155;border-radius:18px;padding:24px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.45)">'+
-        '<div style="font-size:30px;text-align:center;margin-bottom:8px">🛡️</div>'+
-        '<div id="franez-backup-title" style="font-size:21px;font-weight:800;text-align:center;margin-bottom:10px">Copia de seguridad obligatoria</div>'+
-        '<div id="franez-backup-text" style="font-size:14px;line-height:1.6;color:#cbd5e1;margin-bottom:18px;text-align:center">'+
-          'Para proteger los datos de Franez, la aplicación necesita una carpeta de respaldo en el tablet.<br><br>'+
-          '<strong style="color:#fff">Selecciona:</strong> Documents → Json.<br>'+
-          'Franez creará dentro la carpeta <strong style="color:#93c5fd">BACKUPS_FRANEZ</strong> automáticamente.'+
-        '</div>'+
-        '<div id="franez-backup-status" style="display:none;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px"></div>'+
-        '<button id="franez-backup-action" style="width:100%;min-height:50px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-size:15px;font-weight:800;cursor:pointer">📁 Seleccionar carpeta Json</button>'+
-        '<div style="font-size:11px;color:#64748b;text-align:center;margin-top:12px">La selección se hace una sola vez. Después el backup diario será automático.</div>'+
-      '</div>';
-    document.body.appendChild(ov);
-    backupOverlay=ov;
-    ov.querySelector('#franez-backup-action').onclick=configurarCarpetaBackup;
-    return ov;
-  }
-
-  function ocultarOverlayBackup(){
-    if(backupOverlay){
-      backupOverlay.remove();
-      backupOverlay=null;
-    }
-  }
-
-  function mostrarEstadoBackup(msg,ok){
-    var ov=crearOverlayBackup();
-    var box=ov.querySelector('#franez-backup-status');
-    box.style.display='block';
-    box.style.background=ok?'rgba(22,101,52,.25)':'rgba(127,29,29,.3)';
-    box.style.border='1px solid '+(ok?'#22c55e':'#ef4444');
-    box.style.color=ok?'#bbf7d0':'#fecaca';
-    box.textContent=msg;
-  }
-
-  function backupFechaISO(){
-    var d=new Date();
-    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
+  function backupAutomaticoActivo(){
+    return localStorage.getItem(BACKUP_AUTO_KEY)!=='off';
   }
 
   function construirDatosBackup(){
@@ -277,7 +188,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     var st=w.state||{};
     return {
       backupVersion:'1',
-      appVersion:'3.0.6',
+      appVersion:'3.0.7',
       fechaBackup:new Date().toISOString(),
       clientes:Array.isArray(st.clientes)?st.clientes:[],
       productos:Array.isArray(st.productos)?st.productos:[],
@@ -298,32 +209,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     };
   }
 
-  async function escribirBackupAutomatico(dirHandle){
-    var nombre='backup_'+backupFechaISO()+'.json';
-    var fileHandle;
-    try{
-      fileHandle=await dirHandle.getFileHandle(nombre,{create:false});
-      return {creado:false,nombre:nombre};
-    }catch(e){
-      if(e.name!=='NotFoundError')throw e;
-    }
-
-    fileHandle=await dirHandle.getFileHandle(nombre,{create:true});
-    var writable=await fileHandle.createWritable();
-    try{
-      await writable.write(JSON.stringify(construirDatosBackup(),null,2));
-      await writable.close();
-    }catch(e){
-      try{await writable.abort();}catch(_){}
-      throw e;
-    }
-    return {creado:true,nombre:nombre};
-  }
-
-  async function obtenerCarpetaBackup(){
-    var handle=await leerHandleBackup();
-    if(handle && await comprobarPermisoBackup(handle))return handle;
-    return null;
+  function backupFechaISO(){
+    var d=new Date();
+    return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
   }
 
   async function esperarDatosCRM(){
@@ -351,138 +239,104 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     return !!(w.state&&Array.isArray(w.state.clientes));
   }
 
-  async function realizarBackupDeHoy(){
-    var dir=await obtenerCarpetaBackup();
-    if(!dir)return {ok:false,configurar:true};
-    var okPermiso=await comprobarPermisoBackup(dir);
-    if(!okPermiso)return {ok:false,configurar:true};
+  async function descargarBackup(manual){
     await esperarDatosCRM();
-    var resultado=await escribirBackupAutomatico(dir);
-    return {ok:true,creado:resultado.creado,nombre:resultado.nombre};
+    var datos=construirDatosBackup();
+    var nombre='backup_'+backupFechaISO()+'.json';
+    var blob=new Blob([JSON.stringify(datos,null,2)],{type:'application/json;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;
+    a.download=nombre;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1500);
+    localStorage.setItem(BACKUP_DAY_KEY,backupFechaISO());
+    var w=frame.contentWindow;
+    if(w.toast)w.toast(manual?'🛡️ Backup manual descargado ✓':'🛡️ Backup automático descargado ✓','ok');
+    return true;
   }
 
-  async function ejecutarBackupInicio(){
-    if(!window.showDirectoryPicker){
-      crearOverlayBackup();
-      var ov=backupOverlay;
-      ov.querySelector('#franez-backup-title').textContent='Navegador no compatible';
-      ov.querySelector('#franez-backup-text').innerHTML=
-        'Esta función necesita Chrome/Chromium actualizado para poder escribir en una carpeta del tablet.<br><br>'+
-        '<strong style="color:#fca5a5">No voy a fingir que el backup automático está funcionando si el navegador no puede hacerlo.</strong>';
-      ov.querySelector('#franez-backup-action').style.display='none';
-      return;
-    }
-
+  async function ejecutarBackupAutomatico(){
+    if(!backupAutomaticoActivo())return;
+    var hoy=backupFechaISO();
+    if(localStorage.getItem(BACKUP_DAY_KEY)===hoy)return;
     try{
-      var dir=await obtenerCarpetaBackup();
-      if(!dir){
-        crearOverlayBackup();
-        return;
-      }
-
-      var resultado=await realizarBackupDeHoy();
-      if(resultado.ok){
-        ocultarOverlayBackup();
-        var w=frame.contentWindow;
-        if(w.toast){
-          w.toast(resultado.creado?'🛡️ Copia de seguridad de hoy realizada ✓':'🛡️ La copia de seguridad de hoy ya existía ✓','ok');
-        }
-        return;
-      }
-      crearOverlayBackup();
+      await descargarBackup(false);
     }catch(e){
-      crearOverlayBackup();
-      var title=backupOverlay.querySelector('#franez-backup-title');
-      var text=backupOverlay.querySelector('#franez-backup-text');
-      var action=backupOverlay.querySelector('#franez-backup-action');
-      title.textContent='No se pudo completar el respaldo';
-      text.innerHTML='No voy a dejar el CRM funcionando como si la copia estuviera hecha.<br><br>'+
-        '<span style="color:#fca5a5">'+String(e&&e.message?e.message:e)+'</span><br><br>'+
-        'Pulsa el botón para volver a seleccionar <strong>Documents → Json</strong>.';
-      action.textContent='📁 Volver a seleccionar Json';
-    }
-  }
-
-  async function configurarCarpetaBackup(){
-    if(!window.showDirectoryPicker)return;
-    var ov=crearOverlayBackup();
-    var action=ov.querySelector('#franez-backup-action');
-    action.disabled=true;
-    action.style.opacity='.6';
-    try{
-      var dir=await window.showDirectoryPicker({
-        id:'franez-backups',
-        mode:'readwrite',
-        startIn:'documents'
-      });
-      if(!dir||dir.name.toLowerCase()!=='json'){
-        throw new Error('Debes seleccionar exactamente la carpeta Json dentro de Documents.');
-      }
-      var backupDir=await dir.getDirectoryHandle(BACKUP_FOLDER,{create:true});
-      await guardarHandleBackup(backupDir);
-      action.disabled=false;
-      action.style.opacity='1';
-      ov.querySelector('#franez-backup-title').textContent='Carpeta configurada ✓';
-      ov.querySelector('#franez-backup-text').innerHTML=
-        'Se ha creado/seleccionado:<br><br>'+
-        '<strong style="color:#93c5fd">Documents → Json → BACKUPS_FRANEZ</strong><br><br>'+
-        'Ahora voy a realizar la copia de seguridad de hoy.';
-      ov.querySelector('#franez-backup-status').style.display='none';
-      var resultado=await realizarBackupDeHoy();
-      if(!resultado.ok)throw new Error('No se pudo escribir la copia de seguridad.');
-      ocultarOverlayBackup();
       var w=frame.contentWindow;
-      if(w.toast)w.toast('🛡️ Copia de seguridad de hoy realizada ✓','ok');
-    }catch(e){
-      action.disabled=false;
-      action.style.opacity='1';
-      if(e&&e.name==='AbortError'){
-        ov.querySelector('#franez-backup-title').textContent='La copia es obligatoria';
-        mostrarEstadoBackup('No se ha seleccionado la carpeta. Para entrar en Franez hay que configurar el respaldo.',false);
-      }else{
-        mostrarEstadoBackup(String(e&&e.message?e.message:e),false);
-      }
+      if(w.toast)w.toast('⚠️ No se pudo descargar el backup automático. Puedes usar 🛡️ Backup.','error');
+      console.error('Backup automático:',e);
     }
   }
 
   async function forzarBackupManual(){
     try{
-      var resultado=await realizarBackupDeHoy();
-      if(resultado.ok){
-        var w=frame.contentWindow;
-        if(w.toast)w.toast(resultado.creado?'🛡️ Backup manual creado ✓':'🛡️ El backup de hoy ya existe ✓','ok');
-      }else{
-        await configurarCarpetaBackup();
-      }
+      await descargarBackup(true);
     }catch(e){
-      crearOverlayBackup();
-      mostrarEstadoBackup(String(e&&e.message?e.message:e),false);
+      var w=frame.contentWindow;
+      if(w.toast)w.toast('⚠️ No se pudo crear el backup: '+String(e&&e.message?e.message:e),'error');
+      console.error('Backup manual:',e);
     }
+  }
+
+  function instalarAjusteBackup(){
+    var w=frame.contentWindow,d=frame.contentDocument;
+    if(!w||!d)return;
+    if(d.getElementById('ajuste-backup-auto-v307'))return;
+
+    var panel=d.getElementById('panel-ajustes')||d.querySelector('[id*="ajustes"]');
+    if(!panel)return;
+
+    var card=d.createElement('div');
+    card.id='ajuste-backup-auto-v307';
+    card.className='card';
+    card.style.marginTop='14px';
+    card.innerHTML=
+      '<div class="card-title">🛡️ Copia de seguridad</div>'+
+      '<div style="font-size:13px;color:var(--text3);line-height:1.5;margin:6px 0 12px">Descarga un JSON completo una vez al día en la carpeta de Descargas del navegador. Tú tienes la última palabra y puedes desconectarlo cuando quieras.</div>'+
+      '<label style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;cursor:pointer">'+
+        '<span><strong>Backup automático diario</strong><br><span style="font-size:12px;color:var(--text3)">Activo por defecto. El botón 🛡️ Backup sigue disponible aunque lo desactives.</span></span>'+
+        '<input id="backup-auto-switch-v307" type="checkbox" style="width:22px;height:22px;flex:0 0 auto">'+
+      '</label>';
+    panel.appendChild(card);
+
+    var sw=d.getElementById('backup-auto-switch-v307');
+    sw.checked=backupAutomaticoActivo();
+    sw.onchange=function(){
+      localStorage.setItem(BACKUP_AUTO_KEY,sw.checked?'on':'off');
+      if(w.toast)w.toast(sw.checked?'🛡️ Backup automático activado ✓':'🛡️ Backup automático desconectado','ok');
+    };
   }
 
   function instalarBotonBackup(){
     var w=frame.contentWindow,d=frame.contentDocument;
     if(!w||!d)return;
-    if(d.getElementById('nav-backup-v306'))return;
+    if(d.getElementById('nav-backup-v307'))return;
     var nav=d.getElementById('nav');
     if(!nav)return;
     var b=d.createElement('button');
-    b.id='nav-backup-v306';
+    b.id='nav-backup-v307';
     b.className='nav-btn';
     b.innerHTML='🛡️ Backup';
-    b.title='Copia de seguridad';
+    b.title='Descargar copia de seguridad';
     b.onclick=function(){forzarBackupManual();};
     var avisos=d.getElementById('nav-avisos-v3');
     if(avisos&&avisos.nextSibling)nav.insertBefore(b,avisos.nextSibling);
     else if(avisos)nav.appendChild(b);
     else nav.appendChild(b);
+    instalarAjusteBackup();
   }
 
   function arrancar(){
     setTimeout(function(){
       instalarV3();
       instalarBotonBackup();
-      setTimeout(ejecutarBackupInicio,900);
+      setTimeout(function(){
+        instalarAjusteBackup();
+        ejecutarBackupAutomatico();
+      },900);
     },50);
   }
 

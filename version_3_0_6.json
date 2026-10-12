@@ -1,0 +1,68 @@
+{
+  "version": "3.0.5",
+  "fecha": "2026-10-12",
+  "cambios": [
+    "Avisos restaurado al código de la primera implementación que funcionaba, sin la lógica añadida en las versiones 3.0.2, 3.0.3 y 3.0.4.",
+    "Se mantiene la eliminación del popup de inicio y la pestaña Avisos como vía única de consulta.",
+    "Se incrementa la versión para identificar claramente este cambio."
+  ],
+  "historial": [
+    {
+      "version": "3.0.5",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Avisos restaurado al código de la primera implementación que funcionaba, sin la lógica añadida en las versiones 3.0.2, 3.0.3 y 3.0.4.",
+        "Se mantiene la eliminación del popup de inicio y la pestaña Avisos como vía única de consulta.",
+        "Se incrementa la versión para identificar claramente este cambio."
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección definitiva de Avisos: deja de depender de una comprobación previa de state.clientes y consulta directamente la función real del CRM.",
+        "Se refuerza la lectura de contratos con control de errores y se evita que un estado intermedio de carga deje la pestaña Avisos vacía.",
+        "Se mantienen la eliminación del popup de inicio, las correcciones visuales del modo día y la actualización automática durante el arranque."
+      ]
+    },
+    {
+      "version": "3.0.3",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección de Avisos: espera a la carga real de los clientes antes de mostrar el contenido.",
+        "Avisos se actualiza automáticamente durante el arranque para recoger los datos cargados de forma asíncrona.",
+        "Se mantienen las correcciones visuales del modo día y la eliminación del popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección de Avisos: espera a que los clientes estén cargados antes de mostrar el contenido.",
+        "Corrección visual del modo día: las tarjetas de Avisos usan los colores del tema y dejan de aparecer con fondo oscuro.",
+        "Se mantiene eliminado el popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección técnica del arranque de v3. El popup de inicio queda oculto sin eliminar su nodo, evitando errores del código anterior. La nueva pestaña Avisos permanece como vía única de consulta."
+      ]
+    },
+    {
+      "version": "3.0.0",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT."
+      ]
+    },
+    {
+      "version": "2.6.9",
+      "fecha": "2026-05-03",
+      "cambios": [
+        "Sistema de version implementado. Pie en Ajustes muestra version actual y enlaza a Acerca de. Historial cargado dinamicamente desde version.json"
+      ]
+    }
+  ]
+}
