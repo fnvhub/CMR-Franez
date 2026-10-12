@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#2563eb">
-<title>Franez v3.0.3</title>
+<title>Franez v3.0.4</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -30,9 +30,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     }
 
     /* V3: versión */
-    d.title='Franez v3.0.3';
+    d.title='Franez v3.0.4';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.3';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.4';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -90,56 +90,32 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     d.head.appendChild(style);
 
     function getContratos(){
-      if(typeof w.getContratosProximos==='function')return w.getContratosProximos();
-      var dias=(w.state&&w.state.config&&w.state.config.diasContrato)||21;
-      return (w.state&&Array.isArray(w.state.clientes)?w.state.clientes:[]).filter(function(c){
-        if(!c.contrato||typeof w.diasParaVencer!=='function')return false;
-        var x=w.diasParaVencer(c.contrato);
-        return x>=0&&x<=dias;
-      }).sort(function(a,b){
-        return w.diasParaVencer(a.contrato)-w.diasParaVencer(b.contrato);
-      });
-    }
-
-    var avisoRenderTimer=null;
-    var avisoRenderStarted=false;
-
-    function datosClientesListos(){
-      if(!(w.state && Array.isArray(w.state.clientes))) return false;
-      /* state.clientes nace vacío y se rellena después de cargar el CRM.
-         No confundimos ese estado inicial con "carga terminada". */
-      if(w.state.clientes.length>0) return true;
-      if(typeof w.getContratosProximos==='function'){
-        try{
-          return w.getContratosProximos().length>0;
-        }catch(e){}
+      try{
+        if(typeof w.getContratosProximos==='function'){
+          var directos=w.getContratosProximos();
+          return Array.isArray(directos)?directos:[];
+        }
+        var dias=(w.state&&w.state.config&&w.state.config.diasContrato)||21;
+        var clientes=(w.state&&Array.isArray(w.state.clientes))?w.state.clientes:[];
+        if(typeof w.diasParaVencer!=='function')return [];
+        return clientes.filter(function(c){
+          if(!c.contrato)return false;
+          var x=w.diasParaVencer(c.contrato);
+          return x>=0&&x<=dias;
+        }).sort(function(a,b){
+          return w.diasParaVencer(a.contrato)-w.diasParaVencer(b.contrato);
+        });
+      }catch(e){
+        return [];
       }
-      return false;
     }
 
     function renderAvisos(){
       var box=d.getElementById('avisos-content-v3');
       if(!box)return;
 
-      /* Esperar a que el CRM termine de cargar/sincronizar clientes. */
-      if(!datosClientesListos()){
-        box.innerHTML='<div class="aviso-v3-empty">Cargando avisos…</div>';
-        if(!avisoRenderStarted){
-          avisoRenderStarted=true;
-          var intentos=0;
-          avisoRenderTimer=setInterval(function(){
-            intentos++;
-            if(datosClientesListos() || intentos>=60){
-              clearInterval(avisoRenderTimer);
-              avisoRenderTimer=null;
-              avisoRenderStarted=false;
-              renderAvisos();
-            }
-          },250);
-        }
-        return;
-      }
-
+      /* V3.0.4: la función real del CRM es la fuente de verdad.
+         No bloqueamos el render esperando una señal secundaria de carga. */
       var contratos=getContratos();
 
       if(!contratos.length){
@@ -168,18 +144,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
       var badge=d.getElementById('avisos-badge-v3');
       if(!badge)return;
 
-      var contratos=[];
-      if(typeof w.getContratosProximos==='function'){
-        contratos=w.getContratosProximos();
-      }else if(w.state&&Array.isArray(w.state.clientes)&&typeof w.diasParaVencer==='function'){
-        var dias=(w.state.config&&w.state.config.diasContrato)||21;
-        contratos=w.state.clientes.filter(function(c){
-          if(!c.contrato)return false;
-          var x=w.diasParaVencer(c.contrato);
-          return x>=0&&x<=dias;
-        });
-      }
-
+      var contratos=getContratos();
       var n=contratos.length;
       badge.textContent=n;
       badge.classList.toggle('hidden',n===0);
@@ -190,13 +155,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.3';
+    if(aboutVersion)aboutVersion.textContent='v3.0.4';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.3</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.4</span><span class="changelog-desc">Avisos: se elimina la dependencia de la comprobación previa de state.clientes y se consulta directamente la función real del CRM para mostrar los contratos próximos. Manejo de errores y actualización reforzada.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
@@ -206,7 +171,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
   function arrancar(){
     setTimeout(instalarV3,150);
-    /* Reintentos para capturar la carga asíncrona de clientes/pedidos. */
+    /* Relecturas por si Firebase termina de fusionar datos después del arranque. */
     [1200,2500,5000,8000].forEach(function(ms){
       setTimeout(function(){
         if(frame.contentWindow && typeof frame.contentWindow.renderAvisosV3==='function'){

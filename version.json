@@ -1,12 +1,21 @@
 {
-  "version": "3.0.3",
+  "version": "3.0.4",
   "fecha": "2026-10-12",
   "cambios": [
-    "Corrección de Avisos: espera a la carga real de los clientes antes de mostrar el contenido.",
-    "Avisos se actualiza automáticamente durante el arranque para recoger los datos cargados de forma asíncrona.",
-    "Se mantienen las correcciones visuales del modo día y la eliminación del popup de inicio."
+    "Corrección definitiva de Avisos: deja de depender de una comprobación previa de state.clientes y consulta directamente la función real del CRM.",
+    "Se refuerza la lectura de contratos con control de errores y se evita que un estado intermedio de carga deje la pestaña Avisos vacía.",
+    "Se mantienen la eliminación del popup de inicio, las correcciones visuales del modo día y la actualización automática durante el arranque."
   ],
   "historial": [
+    {
+      "version": "3.0.4",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección definitiva de Avisos: deja de depender de una comprobación previa de state.clientes y consulta directamente la función real del CRM.",
+        "Se refuerza la lectura de contratos con control de errores y se evita que un estado intermedio de carga deje la pestaña Avisos vacía.",
+        "Se mantienen la eliminación del popup de inicio, las correcciones visuales del modo día y la actualización automática durante el arranque."
+      ]
+    },
     {
       "version": "3.0.3",
       "fecha": "2026-10-12",
