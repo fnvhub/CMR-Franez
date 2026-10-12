@@ -1,27 +1,50 @@
 {
-  "version": "2.6.9",
-  "fecha": "2026-05-03",
-  "cambios": ["Sistema de version implementado. Pie en Ajustes muestra version actual y enlaza a Acerca de. Historial cargado dinamicamente desde version.json"],
+  "version": "3.0.3",
+  "fecha": "2026-10-12",
+  "cambios": [
+    "Corrección de Avisos: espera a la carga real de los clientes antes de mostrar el contenido.",
+    "Avisos se actualiza automáticamente durante el arranque para recoger los datos cargados de forma asíncrona.",
+    "Se mantienen las correcciones visuales del modo día y la eliminación del popup de inicio."
+  ],
   "historial": [
+    {
+      "version": "3.0.3",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección de Avisos: espera a la carga real de los clientes antes de mostrar el contenido.",
+        "Avisos se actualiza automáticamente durante el arranque para recoger los datos cargados de forma asíncrona.",
+        "Se mantienen las correcciones visuales del modo día y la eliminación del popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.2",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección de Avisos: espera a que los clientes estén cargados antes de mostrar el contenido.",
+        "Corrección visual del modo día: las tarjetas de Avisos usan los colores del tema y dejan de aparecer con fondo oscuro.",
+        "Se mantiene eliminado el popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.1",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección técnica del arranque de v3. El popup de inicio queda oculto sin eliminar su nodo, evitando errores del código anterior. La nueva pestaña Avisos permanece como vía única de consulta."
+      ]
+    },
+    {
+      "version": "3.0.0",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT."
+      ]
+    },
     {
       "version": "2.6.9",
       "fecha": "2026-05-03",
-      "cambios": ["Sistema de version implementado. Pie en Ajustes muestra version actual y enlaza a Acerca de. Historial cargado dinamicamente desde version.json"]
-    },
-    {
-      "version": "2.6.7",
-      "fecha": "",
-      "cambios": ["Importacion automatica desde contrato PDF Nutergia. Boton en seccion Clientes: sube el PDF firmado y relleno, extrae los datos, valida el NIF/CIF, clasifica telefono/movil y verifica el IBAN. Popup de revision antes de guardar."]
-    },
-    {
-      "version": "2.6.6",
-      "fecha": "",
-      "cambios": ["Fix boton borrar historial. Pestana Visitas oculta. Popup inicio del dia muestra contratos que vencen proximamente. Envio y recepcion de pedidos por WhatsApp."]
-    },
-    {
-      "version": "2.6.5",
-      "fecha": "",
-      "cambios": ["Sincronizacion en tiempo real corregida definitivamente."]
+      "cambios": [
+        "Sistema de version implementado. Pie en Ajustes muestra version actual y enlaza a Acerca de. Historial cargado dinamicamente desde version.json"
+      ]
     }
   ]
 }
