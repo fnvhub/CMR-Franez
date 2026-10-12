@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#2563eb">
-<title>Franez v3.0.0</title>
+<title>Franez v3.0.1</title>
 <style>
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 #app-frame{display:block;width:100%;height:100%;border:0}
@@ -20,15 +20,19 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
     var w=frame.contentWindow,d=frame.contentDocument;
     if(!w||!d||!d.body)return;
 
-    /* V3: eliminar por completo el popup de inicio */
+    /* V3: el popup deja de existir como función visible, pero el nodo se conserva
+       para que los listeners antiguos no provoquen errores al ejecutarse. */
     w.initPopupInicio=function(){};
     var popup=d.getElementById('popup-inicio');
-    if(popup)popup.remove();
+    if(popup){
+      popup.style.setProperty('display','none','important');
+      popup.setAttribute('aria-hidden','true');
+    }
 
     /* V3: versión */
-    d.title='Franez v3.0.0';
+    d.title='Franez v3.0.1';
     var navTitle=d.getElementById('nav-title');
-    if(navTitle)navTitle.textContent='⚡ Franez v3.0.0';
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.1';
 
     /* Evitar duplicados */
     if(d.getElementById('nav-avisos-v3')){
@@ -81,7 +85,8 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
       '.aviso-v3.normal{border-left:4px solid #22c55e}'+
       '.aviso-v3-title{font-weight:700;font-size:14px;margin-bottom:5px}'+
       '.aviso-v3-meta{font-size:12px;color:var(--text3)}'+
-      '.aviso-v3-empty{padding:28px 16px;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:12px}';
+      '.aviso-v3-empty{padding:28px 16px;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:12px}'+
+      '#popup-inicio{display:none!important}';
     d.head.appendChild(style);
 
     function getContratos(){
@@ -150,13 +155,13 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
 
     /* Reflejar v3 también en Acerca de */
     var aboutVersion=d.getElementById('about-version');
-    if(aboutVersion)aboutVersion.textContent='v3.0.0';
+    if(aboutVersion)aboutVersion.textContent='v3.0.1';
 
     var aboutChange=d.getElementById('about-changelog');
     if(aboutChange){
       var item=d.createElement('div');
       item.className='changelog-item';
-      item.innerHTML='<span class="changelog-version">v3.0.0</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      item.innerHTML='<span class="changelog-version">v3.0.1</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
       aboutChange.insertBefore(item,aboutChange.firstChild);
     }
 
