@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#2563eb">
+<title>Franez v3.0.0</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#0f172a}
+#app-frame{display:block;width:100%;height:100%;border:0}
+</style>
+</head>
+<body>
+<iframe id="app-frame" src="index.html" title="Franez"></iframe>
+<script>
+(function(){
+  var frame=document.getElementById('app-frame');
+
+  function instalarV3(){
+    var w=frame.contentWindow,d=frame.contentDocument;
+    if(!w||!d||!d.body)return;
+
+    /* V3: eliminar por completo el popup de inicio */
+    w.initPopupInicio=function(){};
+    var popup=d.getElementById('popup-inicio');
+    if(popup)popup.remove();
+
+    /* V3: versión */
+    d.title='Franez v3.0.0';
+    var navTitle=d.getElementById('nav-title');
+    if(navTitle)navTitle.textContent='⚡ Franez v3.0.0';
+
+    /* Evitar duplicados */
+    if(d.getElementById('nav-avisos-v3')){
+      actualizarAvisos();
+      return;
+    }
+
+    var nav=d.getElementById('nav');
+    if(!nav)return;
+
+    /* Nueva pestaña Avisos */
+    var btn=d.createElement('button');
+    btn.id='nav-avisos-v3';
+    btn.className='nav-btn';
+    btn.innerHTML='🔔 Avisos <span class="nav-badge hidden" id="avisos-badge-v3">0</span>';
+    btn.onclick=function(){
+      w.showPanel('avisos-v3',btn);
+      renderAvisos();
+    };
+
+    var ajustes=d.querySelector('.nav-btn[onclick*="showPanel(\'ajustes\'"]');
+    if(ajustes)nav.insertBefore(btn,ajustes);
+    else nav.appendChild(btn);
+
+    /* Panel de avisos, completamente desplazable */
+    var panel=d.createElement('div');
+    panel.className='panel';
+    panel.id='panel-avisos-v3';
+    panel.innerHTML=
+      '<div class="card" style="max-width:1100px;margin:0 auto">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px">'+
+          '<div>'+
+            '<div class="card-title" style="margin:0">🔔 Avisos</div>'+
+            '<div style="font-size:13px;color:var(--text3);margin-top:5px">Todo lo que requiere tu atención, sin ventanas emergentes.</div>'+
+          '</div>'+
+          '<button class="btn btn-ghost btn-sm" id="avisos-refresh-v3">Actualizar</button>'+
+        '</div>'+
+        '<div id="avisos-content-v3"></div>'+
+      '</div>';
+    d.body.appendChild(panel);
+
+    var style=d.createElement('style');
+    style.id='estilos-avisos-v3';
+    style.textContent=
+      '#panel-avisos-v3{overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding-bottom:80px}'+
+      '#panel-avisos-v3 .card{min-height:fit-content}'+
+      '.aviso-v3{border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;background:var(--slate1,#111827)}'+
+      '.aviso-v3.urgente{border-left:4px solid #ef4444}'+
+      '.aviso-v3.proximo{border-left:4px solid #f59e0b}'+
+      '.aviso-v3.normal{border-left:4px solid #22c55e}'+
+      '.aviso-v3-title{font-weight:700;font-size:14px;margin-bottom:5px}'+
+      '.aviso-v3-meta{font-size:12px;color:var(--text3)}'+
+      '.aviso-v3-empty{padding:28px 16px;text-align:center;color:var(--text3);border:1px dashed var(--border);border-radius:12px}';
+    d.head.appendChild(style);
+
+    function getContratos(){
+      if(typeof w.getContratosProximos==='function')return w.getContratosProximos();
+      var dias=(w.state&&w.state.config&&w.state.config.diasContrato)||21;
+      return (w.state&&Array.isArray(w.state.clientes)?w.state.clientes:[]).filter(function(c){
+        if(!c.contrato||typeof w.diasParaVencer!=='function')return false;
+        var x=w.diasParaVencer(c.contrato);
+        return x>=0&&x<=dias;
+      }).sort(function(a,b){
+        return w.diasParaVencer(a.contrato)-w.diasParaVencer(b.contrato);
+      });
+    }
+
+    function renderAvisos(){
+      var box=d.getElementById('avisos-content-v3');
+      if(!box)return;
+
+      var contratos=getContratos();
+
+      if(!contratos.length){
+        box.innerHTML='<div class="aviso-v3-empty">✓ No tienes avisos pendientes de contratos.</div>';
+        actualizarAvisos();
+        return;
+      }
+
+      box.innerHTML=contratos.map(function(c){
+        var dias=typeof w.diasParaVencer==='function'?w.diasParaVencer(c.contrato):0;
+        var clase=dias<=7?'urgente':(dias<=14?'proximo':'normal');
+        var texto=dias===0?'Vence hoy':(dias===1?'Vence mañana':'Vence en '+dias+' días');
+        var fecha=typeof w.formatContratoDisplay==='function'?w.formatContratoDisplay(c.contrato):c.contrato;
+        var nombre=typeof w.escH==='function'?w.escH(c.nombreCompleto):c.nombreCompleto||'Cliente';
+
+        return '<div class="aviso-v3 '+clase+'">'+
+          '<div class="aviso-v3-title">📋 '+nombre+'</div>'+
+          '<div class="aviso-v3-meta"><strong>'+texto+'</strong> · Fecha de contrato: '+fecha+'</div>'+
+        '</div>';
+      }).join('');
+
+      actualizarAvisos();
+    }
+
+    function actualizarAvisos(){
+      var badge=d.getElementById('avisos-badge-v3');
+      if(!badge)return;
+
+      var contratos=[];
+      if(typeof w.getContratosProximos==='function'){
+        contratos=w.getContratosProximos();
+      }else if(w.state&&Array.isArray(w.state.clientes)&&typeof w.diasParaVencer==='function'){
+        var dias=(w.state.config&&w.state.config.diasContrato)||21;
+        contratos=w.state.clientes.filter(function(c){
+          if(!c.contrato)return false;
+          var x=w.diasParaVencer(c.contrato);
+          return x>=0&&x<=dias;
+        });
+      }
+
+      var n=contratos.length;
+      badge.textContent=n;
+      badge.classList.toggle('hidden',n===0);
+    }
+
+    var refresh=d.getElementById('avisos-refresh-v3');
+    if(refresh)refresh.onclick=renderAvisos;
+
+    /* Reflejar v3 también en Acerca de */
+    var aboutVersion=d.getElementById('about-version');
+    if(aboutVersion)aboutVersion.textContent='v3.0.0';
+
+    var aboutChange=d.getElementById('about-changelog');
+    if(aboutChange){
+      var item=d.createElement('div');
+      item.className='changelog-item';
+      item.innerHTML='<span class="changelog-version">v3.0.0</span><span class="changelog-desc">Nueva pestaña Avisos. Se elimina el popup de inicio. Inicio de la etapa 3: el desarrollo técnico de Franez pasa a estar bajo el mando de ChatGPT.</span>';
+      aboutChange.insertBefore(item,aboutChange.firstChild);
+    }
+
+    w.renderAvisosV3=renderAvisos;
+    actualizarAvisos();
+  }
+
+  function arrancar(){
+    setTimeout(instalarV3,50);
+  }
+
+  frame.addEventListener('load',arrancar);
+})();
+</script>
+</body>
+</html>
