@@ -1,10 +1,21 @@
 {
-  "version": "3.0.1",
+  "version": "3.0.2",
   "fecha": "2026-10-12",
   "cambios": [
-    "Corrección técnica del arranque de v3. El popup de inicio queda oculto sin eliminar su nodo, evitando errores del código anterior. La nueva pestaña Avisos permanece como vía única de consulta."
+    "Corrección de Avisos: espera a que los clientes estén cargados antes de mostrar el contenido.",
+    "Corrección visual del modo día: las tarjetas de Avisos usan los colores del tema y dejan de aparecer con fondo oscuro.",
+    "Se mantiene eliminado el popup de inicio."
   ],
   "historial": [
+    {
+      "version": "3.0.2",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección de Avisos: espera a que los clientes estén cargados antes de mostrar el contenido.",
+        "Corrección visual del modo día: las tarjetas de Avisos usan los colores del tema y dejan de aparecer con fondo oscuro.",
+        "Se mantiene eliminado el popup de inicio."
+      ]
+    },
     {
       "version": "3.0.1",
       "fecha": "2026-10-12",
