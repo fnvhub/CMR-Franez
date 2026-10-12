@@ -1,12 +1,51 @@
 {
-  "version": "3.0.3",
+  "version": "3.0.7",
   "fecha": "2026-10-12",
   "cambios": [
-    "Corrección de Avisos: espera a la carga real de los clientes antes de mostrar el contenido.",
-    "Avisos se actualiza automáticamente durante el arranque para recoger los datos cargados de forma asíncrona.",
-    "Se mantienen las correcciones visuales del modo día y la eliminación del popup de inicio."
+    "Backup automático diario descargado en la carpeta de Descargas, sin permisos ni selección de carpetas.",
+    "Se añade en Ajustes un control para desconectar el backup automático. El botón manual 🛡️ Backup permanece disponible como plan B.",
+    "La decisión final sobre el backup automático queda siempre en manos del usuario.",
+    "Se mantiene la pestaña Avisos y la eliminación del popup de inicio."
   ],
   "historial": [
+    {
+      "version": "3.0.7",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Backup automático diario descargado en la carpeta de Descargas, sin permisos ni selección de carpetas.",
+        "Se añade en Ajustes un control para desconectar el backup automático. El botón manual 🛡️ Backup permanece disponible como plan B.",
+        "La decisión final sobre el backup automático queda siempre en manos del usuario.",
+        "Se mantiene la pestaña Avisos y la eliminación del popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.6",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Backup diario obligatorio al abrir Franez: la PWA crea automáticamente una copia JSON completa una vez al día.",
+        "La copia se guarda en Documents/Json/BACKUPS_FRANEZ. La carpeta se configura una sola vez y después el respaldo es automático.",
+        "Se incorpora control de permisos, evita duplicados diarios y bloquea el acceso al CRM si no puede garantizar la copia local.",
+        "Se mantiene la pestaña Avisos y la eliminación del popup de inicio."
+      ]
+    },
+    {
+      "version": "3.0.5",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Avisos restaurado al código de la primera implementación que funcionaba, sin la lógica añadida en las versiones 3.0.2, 3.0.3 y 3.0.4.",
+        "Se mantiene la eliminación del popup de inicio y la pestaña Avisos como vía única de consulta.",
+        "Se incrementa la versión para identificar claramente este cambio."
+      ]
+    },
+    {
+      "version": "3.0.4",
+      "fecha": "2026-10-12",
+      "cambios": [
+        "Corrección definitiva de Avisos: deja de depender de una comprobación previa de state.clientes y consulta directamente la función real del CRM.",
+        "Se refuerza la lectura de contratos con control de errores y se evita que un estado intermedio de carga deje la pestaña Avisos vacía.",
+        "Se mantienen la eliminación del popup de inicio, las correcciones visuales del modo día y la actualización automática durante el arranque."
+      ]
+    },
     {
       "version": "3.0.3",
       "fecha": "2026-10-12",
