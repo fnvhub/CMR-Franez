@@ -264,6 +264,9 @@ function makeCombobox(inputId,listId,valId,getData,onSelect,getLabel,getSub){
   var list=document.getElementById(listId);
   var hid=document.getElementById(valId);
   var activeIdx=-1,prevVal='';
+  var help=document.getElementById(inputId+'-help');
+  function hideHelp(){if(help)help.style.display='none';}
+  function showHelp(){if(help){help.textContent='TAB no puede elegir si hay varios resultados';help.style.display='block';}}
   function getItems(q){var data=getData();if(!q) return data;var ql=q.toLowerCase();return data.filter(function(d){return getLabel(d).toLowerCase().indexOf(ql)>-1;});}
   function render(items){
     list.innerHTML='';
@@ -288,20 +291,21 @@ function makeCombobox(inputId,listId,valId,getData,onSelect,getLabel,getSub){
     activeIdx=idx;
   }
   function selectItem(item){
+    hideHelp();
     inp.value=getLabel(item);hid.value=item.id;prevVal=inp.value;
     list.classList.remove('open');activeIdx=-1;
     if(onSelect) onSelect(item.id,item);
   }
   inp.addEventListener('focus',function(){prevVal=inp.value;render(getItems(inp.value));});
-  inp.addEventListener('input',function(){hid.value='';render(getItems(inp.value));});
+  inp.addEventListener('input',function(){hideHelp();hid.value='';render(getItems(inp.value));});
   inp.addEventListener('keydown',function(e){
     var items=getItems(inp.value);
     var els=list.querySelectorAll('.cb-item');
-    if(e.key==='ArrowDown'){e.preventDefault();setActive(Math.min(activeIdx+1,els.length-1),items);}
-    else if(e.key==='ArrowUp'){e.preventDefault();setActive(Math.max(activeIdx-1,0),items);}
+    if(e.key==='ArrowDown'){hideHelp();e.preventDefault();setActive(Math.min(activeIdx+1,els.length-1),items);}
+    else if(e.key==='ArrowUp'){hideHelp();e.preventDefault();setActive(Math.max(activeIdx-1,0),items);}
     else if(e.key==='Enter'){e.preventDefault();if(activeIdx>=0&&items[activeIdx]){selectItem(items[activeIdx]);}else if(items.length>0){selectItem(items[0]);}}
     else if(e.key==='Escape'){list.classList.remove('open');inp.value=prevVal;hid.value='';}
-    else if(e.key==='Tab'){if(activeIdx>=0&&items[activeIdx]){selectItem(items[activeIdx]);}else if(items.length>0){selectItem(items[0]);}list.classList.remove('open');}
+    else if(e.key==='Tab'){if(activeIdx>=0&&items[activeIdx]){hideHelp();selectItem(items[activeIdx]);}else if(items.length===1){hideHelp();selectItem(items[0]);}else if(items.length>1){showHelp();}else{hideHelp();}list.classList.remove('open');}
   });
   inp.addEventListener('blur',function(){setTimeout(function(){list.classList.remove('open');},150);});
   return {
@@ -309,7 +313,6 @@ function makeCombobox(inputId,listId,valId,getData,onSelect,getLabel,getSub){
     clear:function(){inp.value='';hid.value='';prevVal='';}
   };
 }
-
 // ██ BLOQUE:COMBOBOX-MOTOR-FIN ██
 
 // ██ BLOQUE:INICIALIZAR-COMBOBOXES-INICIO ██

@@ -76,6 +76,7 @@ textarea{resize:vertical;min-height:80px}
 .cb-item:hover,.cb-item.active{background:var(--cobalt);color:#fff}
 .cb-item-sub{font-size:12px;opacity:.75;margin-top:2px}
 .cb-empty{padding:12px 14px;color:var(--text3);font-size:13px;text-align:center}
+.cb-help{display:none;margin-top:5px;color:var(--orange);font-size:12px;line-height:1.35}
 /* PEDIDOS */
 #pedidos-container{display:grid;grid-template-columns:1fr 420px;gap:16px;align-items:start}
 #order-tabs{display:flex;gap:4px;margin-bottom:16px}
